@@ -1,0 +1,15 @@
+import api from './index'
+
+export const getNotes = (params) => api.get('/notes', { params })
+export const getTrashNotes = (params) => api.get('/notes/trash', { params })
+export const getNote = (id) => api.get(`/notes/${id}`)
+export const createNote = (data) => api.post('/notes', data)
+export const updateNote = (id, data) => api.patch(`/notes/${id}`, data)
+export const deleteNote = (id) => api.delete(`/notes/${id}`)
+export const restoreNote = (id) => api.post(`/notes/${id}/restore`)
+export const updateNoteTags = (id, tagIds) => api.put(`/notes/${id}/tags`, { tag_ids: tagIds })
+export const applySuggestedTags = (id) => api.put(`/notes/${id}/tags/apply-suggestions`)
+export const generateSummaryAndTags = (id) => api.post(`/notes/${id}/ai/generate`)
+export const batchDelete = (noteIds) => api.post('/notes/batch/delete', { note_ids: noteIds })
+export const batchRestore = (noteIds) => api.post('/notes/batch/restore', { note_ids: noteIds })
+export const batchMove = (noteIds, notebookId) => api.post('/notes/batch/move', { note_ids: noteIds, notebook_id: notebookId })

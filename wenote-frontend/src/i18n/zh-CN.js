@@ -1,0 +1,129 @@
+export default {
+  common: {
+    save: '保存',
+    cancel: '取消',
+    delete: '删除',
+    create: '创建',
+    logout: '退出',
+    loading: '加载中...'
+  },
+  home: {
+    allNotes: '全部笔记',
+    favorites: '我的收藏',
+    trash: '回收站',
+    searchNotes: '搜索笔记...',
+    searchTrash: '搜索回收站...',
+    noteCount: '共 {count} 条笔记',
+    emptyTrash: '回收站是空的',
+    emptyNotes: '暂无笔记...',
+    selectAll: '全选',
+    selected: '已选 {count} 项',
+    batchRestore: '批量恢复',
+    batchDelete: '批量删除',
+    newNote: '新建笔记'
+  },
+  sidebar: {
+    notebooks: '笔记本',
+    tags: '标签',
+    noNotebooks: '暂无笔记本',
+    noTags: '暂无标签',
+    deleteNotebook: '删除笔记本',
+    deleteNotebookConfirm: '笔记本「{name}」将被永久删除，其中的笔记将移至默认笔记本。',
+    deleteTag: '删除标签',
+    deleteTagConfirm: '确定删除该标签？',
+    online: '在线'
+  },
+  editor: {
+    title: '编辑器',
+    titlePlaceholder: '标题...',
+    contentPlaceholder: '开始你的创作...',
+    aiAssistant: 'AI 助手',
+    generate: '生成',
+    generating: '生成中...',
+    generated: '已生成',
+    summary: '摘要',
+    summaryHint: '点击"生成"按钮获取AI摘要',
+    suggestedTags: '建议标签',
+    applySuggestedTags: '应用建议标签',
+    notebook: '笔记本',
+    tags: '标签',
+    addTag: '+ 添加标签',
+    noMoreTags: '没有更多标签',
+    saveChanges: '保存更改',
+    pin: '置顶',
+    unpin: '取消置顶',
+    star: '收藏'
+  },
+  noteCard: {
+    untitled: '无标题',
+    noContent: '暂无内容...',
+    moveToTrash: '移入回收站'
+  },
+  createModal: {
+    createNotebook: '创建笔记本',
+    createTag: '创建标签',
+    notebookPlaceholder: '输入笔记本名称...',
+    tagPlaceholder: '输入标签名称...'
+  },
+  login: {
+    newGame: '新游戏',
+    continue: '继续',
+    playerId: '玩家ID',
+    heroName: '英雄名',
+    secretKey: '密钥',
+    confirmKey: '确认密钥',
+    startGame: '开始游戏',
+    joinServer: '加入服务器',
+    insertCoin: '投币开始',
+    newChallenger: '新挑战者',
+    feverOn: '狂热模式开启!',
+    feverMode: '狂热模式',
+    fillAllFields: '请填写所有字段!',
+    passwordsDontMatch: '密码不匹配!',
+    tryAgain: '请重试!',
+    registerSuccess: '注册成功，请登录',
+    clickMe: '点我!',
+    welcomeBack: '想我了吧~',
+    newHero: '又一个勇者?',
+    justAPixel: '我只是一条有梦想的蛇',
+    keepTyping: '手速不错嘛~',
+    youGotThis: '稳住，你能行!',
+    wenote: '记笔记，不如记住我',
+    slogan: '投币 · 开始记忆',
+    insertCoinBubble: '投币开始!',
+    loadSave: '读取存档',
+    createHero: '创建角色'
+  },
+  messages: {
+    saveFirst: '请先保存笔记',
+    contentEmpty: '笔记内容为空',
+    aiGenerateSuccess: 'AI 生成完成',
+    aiGenerateFailed: 'AI 生成失败',
+    tagsApplied: '标签已应用',
+    applyTagsFailed: '应用标签失败'
+  },
+  footer: {
+    welcome: '欢迎来到 WENOTE 服务器',
+    highScore: '最高分: 99999',
+    collectNotes: '收集所有笔记!',
+    poweredBy: '由 WENOTE TECH 提供支持'
+  },
+  leaderboard: {
+    title: '排行榜',
+    rank: '排名 #{rank}',
+    insertCoin: '投币加入'
+  },
+  hud: {
+    level: '等级',
+    max: '满级',
+    leaderboard: '排行榜'
+  },
+  settlement: {
+    stageClear: '关卡通过!',
+    combo: '连击',
+    score: '分数',
+    rank: '排名',
+    nextLevel: '下一关',
+    replay: '重玩'
+  }
+}
