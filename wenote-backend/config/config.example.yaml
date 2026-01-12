@@ -1,0 +1,45 @@
+# 配置示例文件
+# 复制此文件为 config.yaml 并填入真实的配置
+
+# 服务器配置
+server:
+  port: 8080
+  mode: debug  # debug, release
+
+# 数据库配置
+database:
+  host: localhost
+  port: 3306
+  username: root
+  password: root123
+  dbname: wenote
+  charset: utf8mb4
+  max_idle_conns: 10
+  max_open_conns: 100
+
+# JWT配置
+jwt:
+  secret: wenote-jwt-secret-key-2024  # 生产环境请修改为随机字符串
+  expire: 168  # token过期时间（小时）
+
+# AI配置（智谱GLM）
+ai:
+  zhipu:
+    # ⚠️ 需要在 https://open.bigmodel.cn/ 注册并获取 API Key
+    # 如果不配置，AI 功能会被跳过，不影响其他功能
+    api_key: your-zhipu-api-key-here  # 请替换为真实的 API Key
+    model: glm-4-flash
+    base_url: https://open.bigmodel.cn/api/paas/v4
+
+# Worker Pool配置
+worker:
+  max_workers: 5       # Worker 协程数量
+  queue_size: 100      # 任务队列大小
+  task_timeout: 30     # 单任务超时（秒）
+
+# 限流配置
+rate_limit:
+  global_rate: 100     # 全局每秒请求数
+  global_burst: 200    # 全局突发容量
+  user_rate: 10        # 用户每秒请求数
+  user_burst: 20       # 用户突发容量

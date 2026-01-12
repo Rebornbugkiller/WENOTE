@@ -1,0 +1,48 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: wenote-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root123}
+      MYSQL_DATABASE: wenote
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./wenote-backend/scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./wenote-backend
+    container_name: wenote-backend
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_USER=root
+      - DB_PASSWORD=${MYSQL_ROOT_PASSWORD:-root123}
+      - DB_NAME=wenote
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./wenote-backend/config:/app/config
+
+  frontend:
+    build:
+      context: ./wenote-frontend
+      args:
+        VITE_API_BASE_URL: /api/v1
+    container_name: wenote-frontend
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+
+volumes:
+  mysql_data:

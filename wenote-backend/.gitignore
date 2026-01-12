@@ -1,0 +1,48 @@
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+main
+
+# Test binary
+*.test
+
+# Output of the go coverage tool
+*.out
+
+# Dependency directories
+vendor/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Config with sensitive data
+config/config.local.yaml
+
+# Logs
+*.log
+logs/
+
+# Temp files
+tmp/
+temp/
+
+# Test scripts (不要提交到 git)
+test_*.sh
+*_test.sh
+
+# 开发日志和临时文档（包含敏感信息或开发过程记录）
+AI_CONFIGURED.md
+DAY2_COMPLETION_REPORT.md
+AI_SETUP.md
+TEST_GUIDE.md

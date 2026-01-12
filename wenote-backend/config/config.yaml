@@ -1,0 +1,57 @@
+# 服务器配置
+server:
+  port: 8080
+  mode: debug  # debug, release
+
+# 数据库配置
+database:
+  host: localhost
+  port: 3306
+  username: root
+  password: root123
+  dbname: wenote
+  charset: utf8mb4
+  max_idle_conns: 10
+  max_open_conns: 100
+
+# JWT配置
+jwt:
+  secret: wenote-jwt-secret-key-2024
+  expire: 168  # token过期时间（小时）
+
+# AI配置（智谱GLM）
+ai:
+  zhipu:
+    api_key: b3d199bd8aea45afb62f9f4ecf6829bb.nDq35zQTxnnufbbJ
+    model: glm-4
+    base_url: https://open.bigmodel.cn/api/paas/v4
+    daily_quota: 50  # 每日AI调用配额
+    timeout: 30      # 单次请求超时时间（秒）
+    max_retries: 2   # 最大重试次数
+    retry_delay: 2   # 重试间隔基准时间（秒）
+
+# Worker Pool配置
+worker:
+  max_workers: 5
+  queue_size: 100
+  task_timeout: 30  # 秒
+
+# 限流配置
+rate_limit:
+  global_rate: 100    # 全局每秒请求数
+  global_burst: 200   # 全局突发容量
+  user_rate: 10       # 用户每秒请求数
+  user_burst: 20      # 用户突发容量
+  ip_rate: 20         # IP每秒请求数
+  ip_burst: 40        # IP突发容量
+
+# 清理配置
+cleanup:
+  enabled: true
+  days: 30            # 清理30天以上的软删除笔记
+
+# 告警配置
+alert:
+  feishu:
+    enabled: true
+    webhook_url: https://open.feishu.cn/open-apis/bot/v2/hook/e36f75a4-2e4b-45d4-8392-464e9b9472ab
