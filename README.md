@@ -8,6 +8,11 @@
 
 ---
 
+<img width="1910" height="827" alt="image" src="https://github.com/user-attachments/assets/5cfa4c14-b83c-47ff-9760-5d4b4c9ec620" />
+<img width="1918" height="826" alt="image" src="https://github.com/user-attachments/assets/03f73025-05a6-49b8-9658-84cf30208ae6" />
+
+<img width="1467" height="710" alt="image" src="https://github.com/user-attachments/assets/be2dcd65-d8f8-4ceb-ad22-a8523397f564" />
+
 ## 为什么选择 WeNote？
 
 **厌倦了笔记越记越乱？** WeNote 来拯救你！
@@ -22,7 +27,6 @@
 ---
 
 ## 快速开始
-
 ### 方式一：Docker 一键启动（推荐）
 
 ```bash
