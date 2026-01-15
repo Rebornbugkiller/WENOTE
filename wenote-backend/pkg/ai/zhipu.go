@@ -11,8 +11,6 @@ import (
 	"strings"
 	"time"
 
-	"wenote-backend/pkg/alert"
-
 	"github.com/sony/gobreaker"
 )
 
@@ -65,11 +63,6 @@ func NewZhipuClient(config ZhipuConfig) *ZhipuClient {
 				"from", from.String(),
 				"to", to.String(),
 			)
-			// 发送飞书告警
-			if client := alert.GetClient(); client != nil {
-				client.SendAlertAsync("warning", "【熔断器状态变化】",
-					fmt.Sprintf("服务: %s\n状态: %s → %s", name, from.String(), to.String()))
-			}
 		},
 	}
 
@@ -137,10 +130,6 @@ func (c *ZhipuClient) GenerateSummaryAndTags(ctx context.Context, content string
 		// 如果是熔断器打开或上下文取消，不重试
 		if err == gobreaker.ErrOpenState || err == gobreaker.ErrTooManyRequests {
 			slog.Warn("Circuit breaker active, stop retrying", "error", err)
-			// 发送告警
-			if client := alert.GetClient(); client != nil {
-				client.SendAlertAsync("error", "【AI服务熔断】", err.Error())
-			}
 			return nil, lastErr
 		}
 		if ctx.Err() != nil {
@@ -159,11 +148,6 @@ func (c *ZhipuClient) GenerateSummaryAndTags(ctx context.Context, content string
 			delay := time.Duration(c.config.RetryDelay*attempt) * time.Second
 			time.Sleep(delay)
 		}
-	}
-
-	// 所有重试失败，发送告警
-	if client := alert.GetClient(); client != nil {
-		client.SendAlertAsync("error", "【AI处理失败】", lastErr.Error())
 	}
 
 	return nil, fmt.Errorf("all retries failed: %w", lastErr)
@@ -279,4 +263,109 @@ func buildPrompt(content string, summaryLen int) string {
 
 请以 JSON 格式返回(只返回 JSON,不要其他文字)：
 {"summary": "摘要内容", "tags": ["标签1", "标签2", "标签3"]}`, summaryLen, content)
+}
+
+// GenerateText 生成通用文本（用于AI写作助手）
+func (c *ZhipuClient) GenerateText(ctx context.Context, systemPrompt, userInput string) (string, error) {
+	reqBody := zhipuRequest{
+		Model: c.config.Model,
+		Messages: []zhipuMessage{
+			{Role: "system", Content: systemPrompt},
+			{Role: "user", Content: userInput},
+		},
+	}
+
+	jsonData, err := json.Marshal(reqBody)
+	if err != nil {
+		return "", fmt.Errorf("marshal request failed: %w", err)
+	}
+
+	// 使用重试机制
+	maxAttempts := c.config.MaxRetries + 1
+	var lastErr error
+
+	for attempt := 1; attempt <= maxAttempts; attempt++ {
+		result, err := c.doTextRequest(ctx, jsonData)
+		if err == nil {
+			return result, nil
+		}
+
+		lastErr = err
+
+		// 熔断器打开，直接返回
+		if err == gobreaker.ErrOpenState {
+			return "", lastErr
+		}
+		if ctx.Err() != nil {
+			return "", lastErr
+		}
+
+		// 最后一次尝试不需要等待
+		if attempt < maxAttempts {
+			delay := time.Duration(c.config.RetryDelay*attempt) * time.Second
+			time.Sleep(delay)
+		}
+	}
+
+	return "", fmt.Errorf("all retries failed: %w", lastErr)
+}
+
+// doTextRequest 执行文本生成请求（带熔断器保护）
+func (c *ZhipuClient) doTextRequest(ctx context.Context, jsonData []byte) (string, error) {
+	// 通过熔断器执行请求
+	result, err := c.breaker.Execute(func() (interface{}, error) {
+		return c.makeTextHTTPRequest(ctx, jsonData)
+	})
+
+	if err != nil {
+		if err == gobreaker.ErrOpenState {
+			return "", fmt.Errorf("AI 服务暂时不可用，请稍后重试")
+		}
+		return "", err
+	}
+
+	return result.(string), nil
+}
+
+// makeTextHTTPRequest 执行实际的文本生成 HTTP 请求
+func (c *ZhipuClient) makeTextHTTPRequest(ctx context.Context, jsonData []byte) (string, error) {
+	req, err := http.NewRequestWithContext(ctx, "POST", c.config.BaseURL+"/chat/completions", bytes.NewBuffer(jsonData))
+	if err != nil {
+		return "", err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+c.config.APIKey)
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("request failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("read response failed: %w", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("API error: status=%d, body=%s", resp.StatusCode, string(body))
+	}
+
+	// 解析响应
+	var zhipuResp zhipuResponse
+	if err := json.Unmarshal(body, &zhipuResp); err != nil {
+		return "", fmt.Errorf("unmarshal response failed: %w", err)
+	}
+
+	if zhipuResp.Error.Message != "" {
+		return "", fmt.Errorf("API error: %s", zhipuResp.Error.Message)
+	}
+
+	if len(zhipuResp.Choices) == 0 {
+		return "", fmt.Errorf("no choices in response")
+	}
+
+	// 返回生成的文本内容
+	return zhipuResp.Choices[0].Message.Content, nil
 }

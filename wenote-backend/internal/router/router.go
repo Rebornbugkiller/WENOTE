@@ -18,6 +18,9 @@ func SetupRouter() *gin.Engine {
 	r.Use(middleware.CORS())
 	r.Use(middleware.RateLimiter())
 
+	// 静态文件服务（图片等）
+	r.Static("/uploads", "./uploads")
+
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"status":  "ok",
@@ -67,21 +70,46 @@ func SetupRouter() *gin.Engine {
 				notes.PUT("/:id/tags", noteHandler.UpdateTags)
 				notes.PUT("/:id/tags/apply-suggestions", noteHandler.ApplySuggestedTags)
 				notes.POST("/:id/ai/generate", noteHandler.GenerateSummaryAndTags)
+				notes.POST("/ai/assist", noteHandler.AIAssist) // AI写作助手
 				notes.POST("/batch/delete", noteHandler.BatchDelete)
 				notes.POST("/batch/restore", noteHandler.BatchRestore)
 				notes.POST("/batch/move", noteHandler.BatchMove)
+				// 附件相关路由
+				notes.POST("/:id/attachments", handler.NewAttachmentHandler().UploadImage)
+				notes.GET("/:id/attachments", handler.NewAttachmentHandler().GetAttachments)
+				// 导入导出路由
+				notes.GET("/export", noteHandler.ExportAllNotes)      // 导出所有笔记
+				notes.GET("/:id/export", noteHandler.ExportNote)       // 导出单个笔记
+				notes.POST("/import", noteHandler.ImportNotes)         // 导入笔记
 			}
 
-			tagHandler := handler.NewTagHandler()
-			tags := authorized.Group("/tags")
+			// 附件删除路由
+			attachmentHandler := handler.NewAttachmentHandler()
+			attachments := authorized.Group("/attachments")
 			{
-				tags.GET("", tagHandler.List)
-				tags.POST("", tagHandler.Create)
-				tags.PATCH("/:id", tagHandler.Update)
-				tags.DELETE("/:id", tagHandler.Delete)
+				attachments.DELETE("/:id", attachmentHandler.DeleteAttachment)
 			}
+
+		tagHandler := handler.NewTagHandler()
+		tags := authorized.Group("/tags")
+		{
+			tags.GET("", tagHandler.List)
+			tags.POST("", tagHandler.Create)
+			tags.PATCH("/:id", tagHandler.Update)
+			tags.DELETE("/:id", tagHandler.Delete)
 		}
+
+			// 统计数据路由
+			statsHandler := handler.NewStatsHandler()
+			stats := authorized.Group("/stats")
+			{
+				stats.GET("/overview", statsHandler.GetOverview)
+				stats.GET("/trend", statsHandler.GetTrendData)
+				stats.GET("/tags", statsHandler.GetTagStats)
+				stats.GET("/notebooks", statsHandler.GetNotebookStats)
+			}
 	}
+}
 
 	return r
 }

@@ -191,3 +191,44 @@ type BatchMoveReq struct {
 	NoteIDs    []uint64 `json:"note_ids" binding:"required,min=1,max=100"` // 要移动的笔记 ID 列表
 	NotebookID uint64   `json:"notebook_id" binding:"required"`            // 目标笔记本 ID
 }
+
+// ========== 附件模型 ==========
+
+// NoteAttachment 笔记附件模型
+type NoteAttachment struct {
+	ID          uint64    `gorm:"primaryKey;autoIncrement" json:"id"`
+	NoteID      uint64    `gorm:"index;not null" json:"note_id"`        // 所属笔记
+	UserID      uint64    `gorm:"index;not null" json:"user_id"`        // 所属用户
+	Filename    string    `gorm:"type:varchar(255);not null" json:"filename"` // 原始文件名
+	FileSize    int       `gorm:"not null" json:"file_size"`            // 文件大小（字节）
+	MimeType    string    `gorm:"type:varchar(100);not null" json:"mime_type"` // MIME类型
+	StoragePath string    `gorm:"type:varchar(500);not null" json:"storage_path"` // 存储路径
+	URL         string    `gorm:"type:varchar(500);not null" json:"url"` // 访问URL
+	CreatedAt   time.Time `gorm:"autoCreateTime" json:"created_at"`
+}
+
+// TableName 指定表名
+func (NoteAttachment) TableName() string {
+	return "note_attachments"
+}
+
+// AttachmentUploadResp 附件上传响应
+type AttachmentUploadResp struct {
+	ID  uint64 `json:"id"`
+	URL string `json:"url"`
+}
+
+// ========== AI 写作助手 ==========
+
+// AIAssistReq AI写作助手请求
+type AIAssistReq struct {
+	Action       string `json:"action" binding:"required,oneof=continue rewrite expand translate"` // 操作类型
+	Context      string `json:"context"`                                                           // 前文内容
+	SelectedText string `json:"selected_text"`                                                     // 选中的文本（改写/扩写时必填）
+	Language     string `json:"language"`                                                          // 翻译目标语言（en/zh）
+}
+
+// AIAssistResp AI写作助手响应
+type AIAssistResp struct {
+	Result string `json:"result"` // 生成的结果
+}

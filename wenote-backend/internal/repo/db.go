@@ -3,7 +3,6 @@ package repo
 import (
 	"wenote-backend/config"
 	"wenote-backend/internal/model"
-	"wenote-backend/pkg/alert"
 	"wenote-backend/pkg/logger"
 	"fmt"
 	"time"
@@ -29,9 +28,6 @@ func InitDB() error {
 		Logger: gormLogger,
 	})
 	if err != nil {
-		if client := alert.GetClient(); client != nil {
-			client.SendAlert("error", "【数据库连接失败】", err.Error())
-		}
 		return fmt.Errorf("连接数据库失败: %w", err)
 	}
 
@@ -61,6 +57,7 @@ func autoMigrate() error {
 		&model.Note{},
 		&model.Tag{},
 		&model.NoteTag{},
+		&model.AuditLog{},
 	)
 }
 

@@ -1,6 +1,6 @@
 import { ref, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getNotes, getTrashNotes, createNote, updateNote, deleteNote, restoreNote, getNote, batchDelete, batchRestore } from '../api/note'
+import { getNotes, getTrashNotes, createNote, updateNote, deleteNote, restoreNote, batchDelete, batchRestore } from '../api/note'
 import { getNotebooks, getDefaultNotebook, createNotebook, deleteNotebook } from '../api/notebook'
 import { getTags, createTag, deleteTag } from '../api/tag'
 
@@ -10,7 +10,6 @@ export function useNotes() {
   const notebooks = ref([])
   const tags = ref([])
   const isLoading = ref(false)
-  const selectedId = ref(null)
   const currentView = ref('active') // 'active' | 'trash' | 'starred' | number (notebook_id)
   const filterTagId = ref(null) // 标签筛选
   const searchQuery = ref('')
@@ -19,9 +18,6 @@ export function useNotes() {
   const page = ref(1)
   const pageSize = ref(20)
   const total = ref(0) // 总记录数
-
-  // Computed
-  const activeNote = computed(() => notes.value.find(n => n.id === selectedId.value))
 
   // Fetch notebooks and tags
   const fetchInitialData = async () => {
@@ -86,7 +82,6 @@ export function useNotes() {
         title: '',
         content: ''
       })
-      selectedId.value = data.id
       await Promise.all([fetchNotes(), fetchInitialData()])
       return data
     } catch (err) {
@@ -134,9 +129,6 @@ export function useNotes() {
     try {
       await deleteNote(id)
       ElMessage.success(isTrash ? '已永久删除' : '已移入回收站')
-      if (selectedId.value === id) {
-        selectedId.value = null
-      }
       await Promise.all([fetchNotes(), fetchInitialData()])
     } catch (err) {
       console.error('Failed to delete note:', err)
@@ -228,7 +220,6 @@ export function useNotes() {
   const setView = (view) => {
     currentView.value = view
     page.value = 1
-    selectedId.value = null
     fetchNotes()
   }
 
@@ -289,11 +280,9 @@ export function useNotes() {
     notebooks,
     tags,
     isLoading,
-    selectedId,
     currentView,
     filterTagId,
     searchQuery,
-    activeNote,
 
     // Methods
     fetchInitialData,

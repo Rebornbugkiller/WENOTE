@@ -23,7 +23,7 @@ jwt:
 ai:
   zhipu:
     api_key: b3d199bd8aea45afb62f9f4ecf6829bb.nDq35zQTxnnufbbJ
-    model: glm-4
+    model: glm-4-flash
     base_url: https://open.bigmodel.cn/api/paas/v4
     daily_quota: 50  # 每日AI调用配额
     timeout: 30      # 单次请求超时时间（秒）
@@ -49,9 +49,3 @@ rate_limit:
 cleanup:
   enabled: true
   days: 30            # 清理30天以上的软删除笔记
-
-# 告警配置
-alert:
-  feishu:
-    enabled: true
-    webhook_url: https://open.feishu.cn/open-apis/bot/v2/hook/e36f75a4-2e4b-45d4-8392-464e9b9472ab

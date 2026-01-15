@@ -90,3 +90,20 @@ CREATE TABLE IF NOT EXISTS audit_logs (
     INDEX idx_user_action (user_id, action),
     INDEX idx_created (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='审计日志表';
+
+-- 笔记附件表（图片等）
+CREATE TABLE IF NOT EXISTS note_attachments (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    note_id BIGINT UNSIGNED NOT NULL COMMENT '笔记ID',
+    user_id BIGINT UNSIGNED NOT NULL COMMENT '用户ID',
+    filename VARCHAR(255) NOT NULL COMMENT '原始文件名',
+    file_size INT NOT NULL COMMENT '文件大小（字节）',
+    mime_type VARCHAR(100) NOT NULL COMMENT 'MIME类型',
+    storage_path VARCHAR(500) NOT NULL COMMENT '存储路径',
+    url VARCHAR(500) NOT NULL COMMENT '访问URL',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '上传时间',
+    INDEX idx_note_id (note_id),
+    INDEX idx_user_id (user_id),
+    FOREIGN KEY (note_id) REFERENCES notes(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='笔记附件表';
