@@ -1,8 +1,15 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
+import { fileURLToPath, URL } from 'node:url'
 
 export default defineConfig({
   plugins: [vue()],
+  resolve: {
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+      'vditor': fileURLToPath(new URL('./node_modules/vditor', import.meta.url))
+    }
+  },
   server: {
     port: 5173,
     proxy: {
@@ -11,5 +18,6 @@ export default defineConfig({
         changeOrigin: true
       }
     }
-  }
+  },
+  assetsInclude: ['**/*.wasm']
 })

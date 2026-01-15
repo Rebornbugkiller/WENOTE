@@ -2,15 +2,17 @@
 import { ref, onMounted, watch, computed, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { Search, Plus, Menu, X, FolderOpen, Trash2, LogOut, Gamepad2, Globe } from 'lucide-vue-next'
+import { Search, Plus, Menu, X, FolderOpen, Trash2, LogOut, Gamepad2, Globe, BarChart3, Download, Upload } from 'lucide-vue-next'
 import confetti from 'canvas-confetti'
+import { ElMessage } from 'element-plus'
 import { useUserStore } from '../stores/user'
 import { useNotes } from '../composables/useNotes'
 import Sidebar from '../components/Sidebar.vue'
 import NoteCard from '../components/notes/NoteCard.vue'
-import EditorModal from '../components/notes/EditorModal.vue'
 import FloatingIcons from '../components/login/FloatingIcons.vue'
+import StatsDashboard from '../components/stats/StatsDashboard.vue'
 import { AudioEngine } from '../components/login/AudioEngine'
+import { exportAllNotes, importNotes } from '../api/note'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -25,6 +27,54 @@ const toggleLocale = () => {
 // Game Mode State
 const isGameMode = ref(true)
 const isPlayingMusic = ref(false)
+
+// Stats Panel State
+const showStats = ref(false)
+
+// Import/Export
+const fileInput = ref(null)
+
+const handleExportAll = async () => {
+  try {
+    playSound('click')
+    const blob = await exportAllNotes()
+    const url = window.URL.createObjectURL(new Blob([blob]))
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', `wenote_backup_${new Date().toISOString().split('T')[0]}.zip`)
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    window.URL.revokeObjectURL(url)
+    ElMessage.success('导出成功')
+  } catch (error) {
+    console.error('Export error:', error)
+    ElMessage.error('导出失败')
+  }
+}
+
+const handleImport = () => {
+  playSound('click')
+  fileInput.value?.click()
+}
+
+const handleFileChange = async (event) => {
+  const file = event.target.files[0]
+  if (!file) return
+
+  try {
+    const response = await importNotes(file)
+    ElMessage.success(`导入成功：${response.imported} 个笔记，失败：${response.failed} 个`)
+    await fetchNotes()
+    await fetchInitialData()
+  } catch (error) {
+    console.error('Import error:', error)
+    ElMessage.error('导入失败')
+  } finally {
+    // 清空 input
+    event.target.value = ''
+  }
+}
 
 // Audio Helpers
 const playSound = (type) => {
@@ -46,10 +96,8 @@ const {
   notebooks,
   tags,
   isLoading,
-  selectedId,
   currentView,
   searchQuery,
-  activeNote,
   fetchInitialData,
   fetchNotes,
   handleCreateNote,
@@ -117,7 +165,7 @@ const viewTitle = computed(() => {
 const createNote = async () => {
   playSound('start')
   try {
-    await handleCreateNote()
+    const newNote = await handleCreateNote()
     // Trigger confetti
     if (isGameMode.value) {
       confetti({
@@ -127,6 +175,8 @@ const createNote = async () => {
         colors: ['#22c55e', '#eab308', '#ec4899']
       })
     }
+    // Navigate to editor
+    router.push(`/editor/${newNote.id}`)
   } catch (err) {
     // Error handled in composable
   }
@@ -145,6 +195,13 @@ const handleSearch = () => {
 const handleLogout = () => {
   userStore.logout()
   router.push('/login')
+}
+
+// Handle note click
+const handleNoteClick = (note) => {
+  console.log('🖱️ Note clicked:', note)
+  playSound('click')
+  router.push(`/editor/${note.id}`)
 }
 
 // Initialize
@@ -268,6 +325,43 @@ onUnmounted(() => {
             </button>
           </div>
 
+          <!-- Export -->
+          <button
+            @click="handleExportAll"
+            class="px-4 py-2 flex items-center gap-2 bg-white border-2 border-black rounded-xl font-bold text-slate-600 hover:bg-green-500 hover:text-white hover:border-green-500 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[3px] hover:translate-y-[3px] transition-all"
+            @mouseenter="playSound('hover')"
+          >
+            <Download class="w-4 h-4" />
+            导出
+          </button>
+
+          <!-- Import -->
+          <button
+            @click="handleImport"
+            class="px-4 py-2 flex items-center gap-2 bg-white border-2 border-black rounded-xl font-bold text-slate-600 hover:bg-purple-500 hover:text-white hover:border-purple-500 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[3px] hover:translate-y-[3px] transition-all"
+            @mouseenter="playSound('hover')"
+          >
+            <Upload class="w-4 h-4" />
+            导入
+          </button>
+          <input
+            ref="fileInput"
+            type="file"
+            accept=".md,.zip"
+            @change="handleFileChange"
+            class="hidden"
+          />
+
+          <!-- Stats -->
+          <button
+            @click="showStats = !showStats; playSound('click')"
+            class="px-4 py-2 flex items-center gap-2 bg-white border-2 border-black rounded-xl font-bold text-slate-600 hover:bg-blue-500 hover:text-white hover:border-blue-500 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[3px] hover:translate-y-[3px] transition-all"
+            @mouseenter="playSound('hover')"
+          >
+            <BarChart3 class="w-4 h-4" />
+            统计
+          </button>
+
           <!-- Logout -->
           <button
             @click="handleLogout"
@@ -282,6 +376,10 @@ onUnmounted(() => {
 
       <!-- Content -->
       <div class="p-6 pt-0 max-w-7xl mx-auto">
+        <!-- Stats Dashboard -->
+        <div v-if="showStats" class="mb-6">
+          <StatsDashboard />
+        </div>
         <!-- Title & New Note Button -->
         <div class="flex justify-between items-end mb-8">
           <div>
@@ -336,7 +434,7 @@ onUnmounted(() => {
             :index="index"
             :is-trash="currentView === 'trash'"
             :selected="selectedIds.includes(note.id)"
-            @click="selectedId = note.id; playSound('click')"
+            @click="handleNoteClick(note)"
             @delete="handleDeleteNote"
             @restore="handleRestoreNote"
             @toggle-status="handleToggleStatus"
@@ -355,17 +453,6 @@ onUnmounted(() => {
         </div>
       </div>
     </main>
-
-    <!-- Editor Modal -->
-    <EditorModal
-      v-if="activeNote"
-      :note="activeNote"
-      :notebooks="notebooks"
-      :all-tags="tags"
-      @close="selectedId = null"
-      @save="async (data) => { await handleUpdateNote(data); selectedId = null }"
-      @refresh="fetchNotes"
-    />
 
     <!-- Dot Pattern Background -->
     <div

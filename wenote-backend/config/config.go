@@ -16,16 +16,6 @@ type Config struct {
 	Worker    WorkerConfig    `mapstructure:"worker"`
 	RateLimit RateLimitConfig `mapstructure:"rate_limit"`
 	Cleanup   CleanupConfig   `mapstructure:"cleanup"`
-	Alert     AlertConfig     `mapstructure:"alert"`
-}
-
-type AlertConfig struct {
-	Feishu FeishuAlertConfig `mapstructure:"feishu"`
-}
-
-type FeishuAlertConfig struct {
-	Enabled    bool   `mapstructure:"enabled"`
-	WebhookURL string `mapstructure:"webhook_url"`
 }
 
 type ServerConfig struct {

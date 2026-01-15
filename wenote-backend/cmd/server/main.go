@@ -6,7 +6,6 @@ import (
 	"wenote-backend/internal/router"
 	"wenote-backend/internal/service"
 	"wenote-backend/pkg/ai"
-	"wenote-backend/pkg/alert"
 	"wenote-backend/pkg/logger"
 	"fmt"
 	"os"
@@ -24,12 +23,6 @@ func main() {
 
 	logger.Init(config.GlobalConfig.Server.Mode)
 	logger.Info("配置加载成功")
-
-	alert.NewFeishuClient(alert.FeishuConfig{
-		Enabled:    config.GlobalConfig.Alert.Feishu.Enabled,
-		WebhookURL: config.GlobalConfig.Alert.Feishu.WebhookURL,
-	})
-	logger.Info("飞书告警客户端初始化成功")
 
 	if err := repo.InitDB(); err != nil {
 		logger.Error("初始化数据库失败", "error", err)

@@ -12,5 +12,7 @@ RUN apk --no-cache add ca-certificates tzdata
 WORKDIR /app
 COPY --from=builder /app/server .
 COPY --from=builder /app/config/config.yaml ./config/
+# 创建上传目录
+RUN mkdir -p /app/uploads/images
 EXPOSE 8080
 CMD ["./server"]
