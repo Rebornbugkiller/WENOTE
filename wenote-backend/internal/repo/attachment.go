@@ -44,3 +44,5 @@ func (r *AttachmentRepo) DeleteByNoteID(noteID uint64) error {
 	return DB.Where("note_id = ?", noteID).Delete(&model.NoteAttachment{}).Error
 }
 
+
+

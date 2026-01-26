@@ -133,10 +133,8 @@ onMounted(async () => {
           for (const file of files) {
             try {
               const response = await uploadImage(formData.value.id, file)
-              // 获取服务器地址
-              const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
               results.push({
-                url: `${baseURL}${response.url}`
+                url: response.url
               })
             } catch (error) {
               ElMessage.error(`图片上传失败: ${file.name}`)

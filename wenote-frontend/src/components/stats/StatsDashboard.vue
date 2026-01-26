@@ -1,8 +1,15 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { getStatsOverview, getStatsTrend, getStatsTagsapi, getStatsNotebooks } from '../../api/stats'
+import { useGamificationStore } from '../../stores/gamification'
 import * as echarts from 'echarts'
 import { BarChart3, TrendingUp, Tag, BookOpen } from 'lucide-vue-next'
+import StreakCounter from '../gamification/StreakCounter.vue'
+import DailyGoalProgress from '../gamification/DailyGoalProgress.vue'
+import AchievementGallery from '../gamification/AchievementGallery.vue'
+import WritingReport from '../gamification/WritingReport.vue'
+
+const gamificationStore = useGamificationStore()
 
 const overview = ref({})
 const loading = ref(false)
@@ -16,6 +23,10 @@ const notebookChartRef = ref(null)
 const loadData = async () => {
   loading.value = true
   try {
+    // 加载游戏化数据
+    await gamificationStore.fetchStatus()
+    await gamificationStore.fetchAchievements()
+
     // 加载概览数据
     const overviewData = await getStatsOverview()
     overview.value = overviewData
@@ -179,6 +190,26 @@ onMounted(() => {
       <h2 class="text-3xl font-black">数据统计</h2>
     </div>
 
+    <!-- 游戏化组件 -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <StreakCounter
+        :streak="gamificationStore.streakDisplay.current"
+        :longest="gamificationStore.streakDisplay.longest"
+        :at-risk="gamificationStore.streakDisplay.atRisk"
+      />
+      <DailyGoalProgress
+        :current="gamificationStore.goalProgress.current"
+        :target="gamificationStore.goalProgress.target"
+        :percent="gamificationStore.goalProgress.percent"
+        :completed="gamificationStore.goalProgress.completed"
+        @update-goal="gamificationStore.setDailyGoal"
+      />
+      <WritingReport />
+    </div>
+
+    <!-- 成就展示 -->
+    <AchievementGallery :achievements="gamificationStore.achievements" />
+
     <!-- 概览卡片 -->
     <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
       <div class="bg-white border-4 border-black rounded-2xl p-4 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
@@ -246,4 +277,6 @@ onMounted(() => {
   to { opacity: 1; transform: translateY(0); }
 }
 </style>
+
+
 

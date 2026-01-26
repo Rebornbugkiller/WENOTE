@@ -36,22 +36,3 @@ export const aiAssist = (action, context, selectedText, language) => {
     language
   })
 }
-
-// 导入导出
-export const exportAllNotes = () => {
-  return api.get('/notes/export', { responseType: 'blob' })
-}
-
-export const exportNote = (noteId) => {
-  return api.get(`/notes/${noteId}/export`, { responseType: 'blob' })
-}
-
-export const importNotes = (file) => {
-  const formData = new FormData()
-  formData.append('file', file)
-  return api.post('/notes/import', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data'
-    }
-  })
-}

@@ -25,17 +25,19 @@ func InitGlobalDeps(client ai.Client) {
 
 // NoteService 笔记服务
 type NoteService struct {
-	noteRepo     *repo.NoteRepo
-	notebookRepo *repo.NotebookRepo
-	tagRepo      *repo.TagRepo
+	noteRepo            *repo.NoteRepo
+	notebookRepo        *repo.NotebookRepo
+	tagRepo             *repo.TagRepo
+	gamificationService *GamificationService
 }
 
 // NewNoteService 创建笔记服务实例
 func NewNoteService() *NoteService {
 	return &NoteService{
-		noteRepo:     repo.NewNoteRepo(),
-		notebookRepo: repo.NewNotebookRepo(),
-		tagRepo:      repo.NewTagRepo(),
+		noteRepo:            repo.NewNoteRepo(),
+		notebookRepo:        repo.NewNotebookRepo(),
+		tagRepo:             repo.NewTagRepo(),
+		gamificationService: NewGamificationService(),
 	}
 }
 
@@ -80,6 +82,12 @@ func (s *NoteService) Create(userID uint64, req *model.NoteCreateReq) (*model.No
 		}
 	}
 
+	// 更新游戏化数据（字符数）
+	charCount := int64(len([]rune(req.Content)))
+	if charCount > 0 {
+		s.gamificationService.UpdateActivity(userID, charCount)
+	}
+
 	return note, nil
 }
 
@@ -104,6 +112,9 @@ func (s *NoteService) Update(userID, noteID uint64, req *model.NoteUpdateReq) (*
 	if note == nil {
 		return nil, ErrNoteNotFound
 	}
+
+	// 记录旧内容长度（用于计算字符增量）
+	oldContentLen := len([]rune(note.Content))
 
 	// 如果要更换笔记本，先验证要更换到的目标笔记本是否存在且归属于当前用户
 	if req.NotebookID != nil {
@@ -204,7 +215,16 @@ func (s *NoteService) Update(userID, noteID uint64, req *model.NoteUpdateReq) (*
 		}
 	}
 
-	// 10. 返回这条笔记的完整信息（含最新标签/AI字段等）
+	// 10. 更新游戏化数据（如果内容有变化）
+	if req.Content != nil {
+		newContentLen := len([]rune(*req.Content))
+		charsDelta := int64(newContentLen - oldContentLen)
+		if charsDelta > 0 {
+			s.gamificationService.UpdateActivity(userID, charsDelta)
+		}
+	}
+
+	// 11. 返回这条笔记的完整信息（含最新标签/AI字段等）
 	// 是的，这里已经更新到数据库，
 	// 然后通过ID再次查询最新的笔记返回前端
 	return s.noteRepo.GetByID(note.ID)

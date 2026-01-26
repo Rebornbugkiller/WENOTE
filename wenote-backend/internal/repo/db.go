@@ -51,14 +51,39 @@ func InitDB() error {
 }
 
 func autoMigrate() error {
-	return DB.AutoMigrate(
+	err := DB.AutoMigrate(
 		&model.User{},
 		&model.Notebook{},
 		&model.Note{},
 		&model.Tag{},
 		&model.NoteTag{},
 		&model.AuditLog{},
+		&model.UserGamification{},
+		&model.Achievement{},
+		&model.UserAchievement{},
 	)
+	if err != nil {
+		return err
+	}
+
+	// 初始化预置成就数据
+	if err := seedAchievements(); err != nil {
+		return fmt.Errorf("初始化成就数据失败: %w", err)
+	}
+
+	return nil
+}
+
+// seedAchievements 初始化预置成就数据
+func seedAchievements() error {
+	for _, achievement := range model.DefaultAchievements {
+		// 使用 FirstOrCreate 避免重复插入
+		result := DB.Where("id = ?", achievement.ID).FirstOrCreate(&achievement)
+		if result.Error != nil {
+			return result.Error
+		}
+	}
+	return nil
 }
 
 func CloseDB() error {

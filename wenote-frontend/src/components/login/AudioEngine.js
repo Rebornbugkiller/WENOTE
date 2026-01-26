@@ -92,6 +92,57 @@ export const AudioEngine = {
         o.start(t)
         o.stop(t + 0.25)
       })
+    } else if (type === 'achievement') {
+      // 成就解锁音效 - 胜利号角
+      const notes = [523, 659, 784, 1047, 1319, 1568]
+      notes.forEach((freq, i) => {
+        const o = ctx.createOscillator()
+        const g = ctx.createGain()
+        o.connect(g)
+        g.connect(ctx.destination)
+        o.type = 'square'
+        const t = now + i * 0.1
+        o.frequency.setValueAtTime(freq, t)
+        g.gain.setValueAtTime(0.1, t)
+        g.gain.exponentialRampToValueAtTime(0.01, t + 0.3)
+        o.start(t)
+        o.stop(t + 0.3)
+      })
+    } else if (type === 'streak') {
+      // 连续天数音效 - 火焰音效
+      osc.type = 'sawtooth'
+      osc.frequency.setValueAtTime(100, now)
+      osc.frequency.exponentialRampToValueAtTime(400, now + 0.1)
+      osc.frequency.exponentialRampToValueAtTime(100, now + 0.2)
+      gain.gain.setValueAtTime(0.05, now)
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2)
+      osc.start(now)
+      osc.stop(now + 0.2)
+    } else if (type === 'goalComplete') {
+      // 目标完成音效 - 庆祝铃声
+      const notes = [784, 988, 1175, 1568]
+      notes.forEach((freq, i) => {
+        const o = ctx.createOscillator()
+        const g = ctx.createGain()
+        o.connect(g)
+        g.connect(ctx.destination)
+        o.type = 'sine'
+        const t = now + i * 0.15
+        o.frequency.setValueAtTime(freq, t)
+        g.gain.setValueAtTime(0.08, t)
+        g.gain.exponentialRampToValueAtTime(0.001, t + 0.4)
+        o.start(t)
+        o.stop(t + 0.4)
+      })
+    } else if (type === 'switch') {
+      // 切换音效
+      osc.type = 'square'
+      osc.frequency.setValueAtTime(440, now)
+      osc.frequency.setValueAtTime(550, now + 0.05)
+      gain.gain.setValueAtTime(0.03, now)
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1)
+      osc.start(now)
+      osc.stop(now + 0.1)
     }
   },
 

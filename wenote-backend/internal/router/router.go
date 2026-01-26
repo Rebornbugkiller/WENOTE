@@ -44,6 +44,9 @@ func SetupRouter() *gin.Engine {
 			users := authorized.Group("/users")
 			{
 				users.GET("/me", userHandler.GetMe)
+				users.PATCH("/me", userHandler.UpdateProfile)
+				users.POST("/me/password", userHandler.ChangePassword)
+				users.DELETE("/me", userHandler.DeleteAccount)
 			}
 
 			notebookHandler := handler.NewNotebookHandler()
@@ -77,11 +80,7 @@ func SetupRouter() *gin.Engine {
 				// 附件相关路由
 				notes.POST("/:id/attachments", handler.NewAttachmentHandler().UploadImage)
 				notes.GET("/:id/attachments", handler.NewAttachmentHandler().GetAttachments)
-				// 导入导出路由
-				notes.GET("/export", noteHandler.ExportAllNotes)      // 导出所有笔记
-				notes.GET("/:id/export", noteHandler.ExportNote)       // 导出单个笔记
-				notes.POST("/import", noteHandler.ImportNotes)         // 导入笔记
-			}
+				}
 
 			// 附件删除路由
 			attachmentHandler := handler.NewAttachmentHandler()
@@ -107,6 +106,17 @@ func SetupRouter() *gin.Engine {
 				stats.GET("/trend", statsHandler.GetTrendData)
 				stats.GET("/tags", statsHandler.GetTagStats)
 				stats.GET("/notebooks", statsHandler.GetNotebookStats)
+			}
+
+			// 游戏化路由
+			gamificationHandler := handler.NewGamificationHandler()
+			gamification := authorized.Group("/gamification")
+			{
+				gamification.GET("/status", gamificationHandler.GetStatus)
+				gamification.GET("/achievements", gamificationHandler.GetAchievements)
+				gamification.POST("/goal", gamificationHandler.UpdateGoal)
+				gamification.GET("/report", gamificationHandler.GetReport)
+				gamification.POST("/achievements/:id/notify", gamificationHandler.MarkAchievementNotified)
 			}
 	}
 }

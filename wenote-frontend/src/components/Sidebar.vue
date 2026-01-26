@@ -1,13 +1,16 @@
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { LayoutGrid, Star, Book, Trash2, Plus, X } from 'lucide-vue-next'
+import { LayoutGrid, Star, Book, Trash2, Plus, X, Settings } from 'lucide-vue-next'
 import MenuButton from './notes/MenuButton.vue'
 import CreateModal from './notes/CreateModal.vue'
 import { ElMessageBox } from 'element-plus'
 import { AudioEngine } from './login/AudioEngine'
 import { tagColors, getTagColor } from '../utils/color'
+import { AVATAR_STYLES } from '../stores/user'
 
+const router = useRouter()
 const { t } = useI18n()
 
 const props = defineProps({
@@ -43,6 +46,11 @@ const handleCreate = (name, type) => {
     emit('create-tag', name, randomColor())
     showTagModal.value = false
   }
+}
+
+const goToSettings = () => {
+  playSound('click')
+  router.push('/settings')
 }
 </script>
 
@@ -195,17 +203,25 @@ const handleCreate = (name, type) => {
 
     <!-- User Info -->
     <div class="p-4 border-t-2 border-slate-100">
-      <div class="flex items-center gap-3 p-2 rounded-xl bg-slate-100 border-2 border-slate-200 hover:border-black transition-colors cursor-pointer">
-        <div class="w-10 h-10 rounded-full bg-yellow-400 border-2 border-black overflow-hidden flex items-center justify-center font-bold text-lg">
-          {{ user?.username?.charAt(0) || 'G' }}
+      <div
+        class="flex items-center gap-3 p-2 rounded-xl bg-slate-100 border-2 border-slate-200 hover:border-black transition-colors cursor-pointer group"
+        @click="goToSettings"
+        @mouseenter="playSound('hover')"
+      >
+        <div
+          class="w-10 h-10 rounded-full border-2 border-black overflow-hidden flex items-center justify-center font-bold text-lg"
+          :style="{ backgroundColor: user?.avatar_color || '#fbbf24' }"
+        >
+          {{ AVATAR_STYLES[user?.avatar_style] || user?.username?.charAt(0) || '🐱' }}
         </div>
-        <div class="overflow-hidden">
-          <p class="font-bold text-sm truncate">{{ user?.username || 'Guest' }}</p>
+        <div class="overflow-hidden flex-1">
+          <p class="font-bold text-sm truncate">{{ user?.nickname || user?.username || 'Guest' }}</p>
           <div class="text-xs text-slate-500 flex items-center gap-1">
             <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
             {{ t('sidebar.online') }}
           </div>
         </div>
+        <Settings class="w-5 h-5 text-slate-400 group-hover:text-slate-600 group-hover:rotate-90 transition-all" />
       </div>
     </div>
   </aside>

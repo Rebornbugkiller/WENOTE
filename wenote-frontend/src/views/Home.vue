@@ -2,20 +2,22 @@
 import { ref, onMounted, watch, computed, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { Search, Plus, Menu, X, FolderOpen, Trash2, LogOut, Gamepad2, Globe, BarChart3, Download, Upload } from 'lucide-vue-next'
+import { Search, Plus, Menu, X, FolderOpen, Trash2, LogOut, Gamepad2, Globe, BarChart3 } from 'lucide-vue-next'
 import confetti from 'canvas-confetti'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '../stores/user'
+import { useGamificationStore } from '../stores/gamification'
 import { useNotes } from '../composables/useNotes'
 import Sidebar from '../components/Sidebar.vue'
 import NoteCard from '../components/notes/NoteCard.vue'
 import FloatingIcons from '../components/login/FloatingIcons.vue'
 import StatsDashboard from '../components/stats/StatsDashboard.vue'
+import AchievementUnlockModal from '../components/gamification/AchievementUnlockModal.vue'
 import { AudioEngine } from '../components/login/AudioEngine'
-import { exportAllNotes, importNotes } from '../api/note'
 
 const router = useRouter()
 const userStore = useUserStore()
+const gamificationStore = useGamificationStore()
 const { locale, t } = useI18n()
 
 // Language toggle
@@ -31,48 +33,44 @@ const isPlayingMusic = ref(false)
 // Stats Panel State
 const showStats = ref(false)
 
-// Import/Export
-const fileInput = ref(null)
+// Achievement Notification State
+const showAchievementModal = ref(false)
+const currentAchievement = ref(null)
 
-const handleExportAll = async () => {
-  try {
-    playSound('click')
-    const blob = await exportAllNotes()
-    const url = window.URL.createObjectURL(new Blob([blob]))
-    const link = document.createElement('a')
-    link.href = url
-    link.setAttribute('download', `wenote_backup_${new Date().toISOString().split('T')[0]}.zip`)
-    document.body.appendChild(link)
-    link.click()
-    link.remove()
-    window.URL.revokeObjectURL(url)
-    ElMessage.success('导出成功')
-  } catch (error) {
-    console.error('Export error:', error)
-    ElMessage.error('导出失败')
+// Watch for new achievements
+watch(() => gamificationStore.pendingNotifications, (newAchievements) => {
+  if (newAchievements.length > 0 && !showAchievementModal.value) {
+    currentAchievement.value = newAchievements[0]
+    showAchievementModal.value = true
+    if (isGameMode.value) {
+      AudioEngine.playSFX('achievement')
+      confetti({
+        particleCount: 150,
+        spread: 100,
+        origin: { y: 0.5 },
+        colors: ['#fbbf24', '#f59e0b', '#d97706', '#22c55e', '#ec4899']
+      })
+    }
   }
-}
+}, { immediate: true })
 
-const handleImport = () => {
-  playSound('click')
-  fileInput.value?.click()
-}
+const handleAchievementClose = async (achievementId) => {
+  if (achievementId) {
+    await gamificationStore.dismissNotification(achievementId)
+  }
+  showAchievementModal.value = false
+  currentAchievement.value = null
 
-const handleFileChange = async (event) => {
-  const file = event.target.files[0]
-  if (!file) return
-
-  try {
-    const response = await importNotes(file)
-    ElMessage.success(`导入成功：${response.imported} 个笔记，失败：${response.failed} 个`)
-    await fetchNotes()
-    await fetchInitialData()
-  } catch (error) {
-    console.error('Import error:', error)
-    ElMessage.error('导入失败')
-  } finally {
-    // 清空 input
-    event.target.value = ''
+  // Check if there are more achievements to show
+  if (gamificationStore.pendingNotifications.length > 0) {
+    setTimeout(() => {
+      currentAchievement.value = gamificationStore.pendingNotifications[0]
+      showAchievementModal.value = true
+      if (isGameMode.value) {
+        AudioEngine.playSFX('achievement')
+        confetti({ particleCount: 150, spread: 100, origin: { y: 0.5 } })
+      }
+    }, 500)
   }
 }
 
@@ -209,7 +207,10 @@ onMounted(async () => {
   await userStore.fetchUser()
   await fetchInitialData()
   await fetchNotes()
-  
+
+  // Fetch gamification status
+  await gamificationStore.fetchStatus()
+
   // Init audio context on first user interaction if needed
   window.addEventListener('click', () => {
     if (isGameMode.value) AudioEngine.init()
@@ -250,12 +251,12 @@ onUnmounted(() => {
       :user="userStore.user"
       :sidebar-open="sidebarOpen"
       :game-mode="isGameMode"
-      @change-view="setView"
+      @change-view="(v) => { setView(v); showStats = false }"
       @create-notebook="handleCreateNotebook"
       @delete-notebook="handleDeleteNotebook"
       @create-tag="handleCreateTag"
       @delete-tag="handleDeleteTag"
-      @filter-by-tag="setFilterTag"
+      @filter-by-tag="(id) => { setFilterTag(id); showStats = false }"
     />
 
     <!-- Main Content -->
@@ -324,33 +325,6 @@ onUnmounted(() => {
               <span v-else>🔇 OFF</span>
             </button>
           </div>
-
-          <!-- Export -->
-          <button
-            @click="handleExportAll"
-            class="px-4 py-2 flex items-center gap-2 bg-white border-2 border-black rounded-xl font-bold text-slate-600 hover:bg-green-500 hover:text-white hover:border-green-500 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[3px] hover:translate-y-[3px] transition-all"
-            @mouseenter="playSound('hover')"
-          >
-            <Download class="w-4 h-4" />
-            导出
-          </button>
-
-          <!-- Import -->
-          <button
-            @click="handleImport"
-            class="px-4 py-2 flex items-center gap-2 bg-white border-2 border-black rounded-xl font-bold text-slate-600 hover:bg-purple-500 hover:text-white hover:border-purple-500 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[3px] hover:translate-y-[3px] transition-all"
-            @mouseenter="playSound('hover')"
-          >
-            <Upload class="w-4 h-4" />
-            导入
-          </button>
-          <input
-            ref="fileInput"
-            type="file"
-            accept=".md,.zip"
-            @change="handleFileChange"
-            class="hidden"
-          />
 
           <!-- Stats -->
           <button
@@ -453,6 +427,13 @@ onUnmounted(() => {
         </div>
       </div>
     </main>
+
+    <!-- Achievement Unlock Modal -->
+    <AchievementUnlockModal
+      :show="showAchievementModal"
+      :achievement="currentAchievement"
+      @close="handleAchievementClose"
+    />
 
     <!-- Dot Pattern Background -->
     <div

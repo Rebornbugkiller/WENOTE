@@ -117,8 +117,7 @@ const initVditor = async () => {
           for (const file of files) {
             try {
               const response = await uploadImage(formData.value.id, file)
-              const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080'
-              results.push({ url: `${baseURL}${response.url}` })
+              results.push({ url: response.url })
             } catch (error) {
               ElMessage.error(`图片上传失败: ${file.name}`)
               console.error('Upload error:', error)

@@ -26,3 +26,15 @@ go.work.sum
 
 # test reports and docs
 docs/
+
+# Config with secrets (use config.example.yaml as template)
+wenote-backend/config/config.yaml
+
+# Claude Code settings
+.claude/
+
+# Uploads
+wenote-backend/uploads/
+
+# Temp files
+nul
