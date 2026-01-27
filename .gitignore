@@ -38,3 +38,15 @@ wenote-backend/uploads/
 
 # Temp files
 nul
+
+# Compiled binaries
+wenote-backend/server
+wenote-backend/server-linux
+
+# Node modules and build output
+wenote-frontend/node_modules/
+wenote-frontend/dist/
+
+# OS files
+.DS_Store
+Thumbs.db
