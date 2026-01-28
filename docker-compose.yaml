@@ -3,7 +3,7 @@ services:
     image: mysql:8.0
     container_name: wenote-mysql
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root123}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: wenote
     volumes:
       - mysql_data:/var/lib/mysql
@@ -27,7 +27,7 @@ services:
       - DB_HOST=mysql
       - DB_PORT=3306
       - DB_USER=root
-      - DB_PASSWORD=${MYSQL_ROOT_PASSWORD:-root123}
+      - DB_PASSWORD=${MYSQL_ROOT_PASSWORD}
       - DB_NAME=wenote
     ports:
       - "8080:8080"
