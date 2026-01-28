@@ -31,8 +31,10 @@ export default {
     noTags: '暂无标签',
     deleteNotebook: '删除笔记本',
     deleteNotebookConfirm: '笔记本「{name}」将被永久删除，其中的笔记将移至默认笔记本。',
+    renameNotebook: '重命名笔记本',
     deleteTag: '删除标签',
     deleteTagConfirm: '确定删除该标签？',
+    editTag: '编辑标签',
     online: '在线'
   },
   editor: {
@@ -64,8 +66,12 @@ export default {
   createModal: {
     createNotebook: '创建笔记本',
     createTag: '创建标签',
+    editNotebook: '编辑笔记本',
+    editTag: '编辑标签',
     notebookPlaceholder: '输入笔记本名称...',
-    tagPlaceholder: '输入标签名称...'
+    tagPlaceholder: '输入标签名称...',
+    namePlaceholder: '输入名称...',
+    selectColor: '选择颜色'
   },
   login: {
     newGame: '新游戏',
@@ -102,7 +108,10 @@ export default {
     aiGenerateSuccess: 'AI 生成完成',
     aiGenerateFailed: 'AI 生成失败',
     tagsApplied: '标签已应用',
-    applyTagsFailed: '应用标签失败'
+    applyTagsFailed: '应用标签失败',
+    notebookUpdated: '笔记本已更新',
+    tagUpdated: '标签已更新',
+    updateFailed: '更新失败'
   },
   footer: {
     welcome: '欢迎来到 WENOTE 服务器',

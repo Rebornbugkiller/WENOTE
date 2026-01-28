@@ -104,8 +104,10 @@ const {
   handleRestoreNote,
   handleToggleStatus,
   handleCreateNotebook,
+  handleUpdateNotebook,
   handleDeleteNotebook,
   handleCreateTag,
+  handleUpdateTag,
   handleDeleteTag,
   handleBatchDelete,
   handleBatchRestore,
@@ -253,8 +255,10 @@ onUnmounted(() => {
       :game-mode="isGameMode"
       @change-view="(v) => { setView(v); showStats = false }"
       @create-notebook="handleCreateNotebook"
+      @update-notebook="handleUpdateNotebook"
       @delete-notebook="handleDeleteNotebook"
       @create-tag="handleCreateTag"
+      @update-tag="handleUpdateTag"
       @delete-tag="handleDeleteTag"
       @filter-by-tag="(id) => { setFilterTag(id); showStats = false }"
     />

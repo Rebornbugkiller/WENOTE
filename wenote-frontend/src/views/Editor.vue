@@ -3,7 +3,7 @@ import { ref, onMounted, computed, onBeforeUnmount, watch, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ArrowLeft, Pin, Star, Save, Sparkles, CheckCircle2, Book, Bot } from 'lucide-vue-next'
-import { getNote, uploadImage } from '../api/note'
+import { getNote } from '../api/note'
 import { getNotebooks } from '../api/notebook'
 import { getTags } from '../api/tag'
 import { ElMessage, ElLoading } from 'element-plus'
@@ -107,23 +107,9 @@ const initVditor = async () => {
       ],
       upload: {
         accept: 'image/*',
-        max: 5 * 1024 * 1024,
-        handler: async (files) => {
-          if (!formData.value.id) {
-            ElMessage.warning(t('messages.saveFirst'))
-            return null
-          }
-          const results = []
-          for (const file of files) {
-            try {
-              const response = await uploadImage(formData.value.id, file)
-              results.push({ url: response.url })
-            } catch (error) {
-              ElMessage.error(`图片上传失败: ${file.name}`)
-              console.error('Upload error:', error)
-            }
-          }
-          return results.length > 0 ? JSON.stringify(results) : null
+        handler: () => {
+          ElMessage.warning('请使用图片链接插入图片')
+          return null
         }
       },
       cache: { enable: false },

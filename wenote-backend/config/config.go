@@ -96,6 +96,7 @@ func InitConfig() error {
 		return fmt.Errorf("解析配置文件失败: %w", err)
 	}
 
+	// 环境变量覆盖配置
 	if host := os.Getenv("DB_HOST"); host != "" {
 		GlobalConfig.Database.Host = host
 	}
@@ -112,6 +113,24 @@ func InitConfig() error {
 	}
 	if name := os.Getenv("DB_NAME"); name != "" {
 		GlobalConfig.Database.DBName = name
+	}
+
+	// JWT环境变量覆盖
+	if secret := os.Getenv("JWT_SECRET"); secret != "" {
+		GlobalConfig.JWT.Secret = secret
+	}
+	if expire := os.Getenv("JWT_EXPIRE"); expire != "" {
+		if e, err := strconv.Atoi(expire); err == nil {
+			GlobalConfig.JWT.Expire = e
+		}
+	}
+
+	// AI环境变量覆盖
+	if apiKey := os.Getenv("ZHIPU_API_KEY"); apiKey != "" {
+		GlobalConfig.AI.Zhipu.APIKey = apiKey
+	}
+	if model := os.Getenv("ZHIPU_MODEL"); model != "" {
+		GlobalConfig.AI.Zhipu.Model = model
 	}
 
 	return nil

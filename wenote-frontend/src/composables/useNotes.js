@@ -1,8 +1,8 @@
 import { ref, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getNotes, getTrashNotes, createNote, updateNote, deleteNote, restoreNote, batchDelete, batchRestore } from '../api/note'
-import { getNotebooks, getDefaultNotebook, createNotebook, deleteNotebook } from '../api/notebook'
-import { getTags, createTag, deleteTag } from '../api/tag'
+import { getNotebooks, getDefaultNotebook, createNotebook, updateNotebook, deleteNotebook } from '../api/notebook'
+import { getTags, createTag, updateTag, deleteTag } from '../api/tag'
 
 export function useNotes() {
   // State
@@ -191,6 +191,19 @@ export function useNotes() {
     }
   }
 
+  // Update notebook
+  const handleUpdateNotebook = async (id, name) => {
+    try {
+      await updateNotebook(id, { name })
+      ElMessage.success('笔记本已更新')
+      await fetchInitialData()
+    } catch (err) {
+      console.error('Failed to update notebook:', err)
+      ElMessage.error('更新失败')
+      throw err
+    }
+  }
+
   // Create tag
   const handleCreateTag = async (name, color) => {
     try {
@@ -213,6 +226,20 @@ export function useNotes() {
     } catch (err) {
       console.error('Failed to delete tag:', err)
       ElMessage.error('删除失败')
+    }
+  }
+
+  // Update tag
+  const handleUpdateTag = async (id, name, color) => {
+    try {
+      await updateTag(id, { name, color })
+      ElMessage.success('标签已更新')
+      await fetchInitialData()
+      await fetchNotes()
+    } catch (err) {
+      console.error('Failed to update tag:', err)
+      ElMessage.error('更新失败')
+      throw err
     }
   }
 
@@ -293,8 +320,10 @@ export function useNotes() {
     handleRestoreNote,
     handleToggleStatus,
     handleCreateNotebook,
+    handleUpdateNotebook,
     handleDeleteNotebook,
     handleCreateTag,
+    handleUpdateTag,
     handleDeleteTag,
     handleBatchDelete,
     handleBatchRestore,

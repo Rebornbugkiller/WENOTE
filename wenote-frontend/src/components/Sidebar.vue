@@ -2,10 +2,11 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { LayoutGrid, Star, Book, Trash2, Plus, X, Settings } from 'lucide-vue-next'
+import { LayoutGrid, Star, Book, Trash2, Plus, X, Settings, Edit2 } from 'lucide-vue-next'
 import MenuButton from './notes/MenuButton.vue'
 import CreateModal from './notes/CreateModal.vue'
-import { ElMessageBox } from 'element-plus'
+import EditModal from './notes/EditModal.vue'
+import { ElMessageBox, ElDropdown, ElDropdownMenu, ElDropdownItem } from 'element-plus'
 import { AudioEngine } from './login/AudioEngine'
 import { tagColors, getTagColor } from '../utils/color'
 import { AVATAR_STYLES } from '../stores/user'
@@ -29,11 +30,15 @@ const playSound = (type) => {
   }
 }
 
-const emit = defineEmits(['change-view', 'create-notebook', 'delete-notebook', 'create-tag', 'delete-tag', 'filter-by-tag', 'toggle-sidebar'])
+const emit = defineEmits(['change-view', 'create-notebook', 'update-notebook', 'delete-notebook', 'create-tag', 'update-tag', 'delete-tag', 'filter-by-tag', 'toggle-sidebar'])
 
 // Modal state
 const showNotebookModal = ref(false)
 const showTagModal = ref(false)
+const showEditNotebookModal = ref(false)
+const showEditTagModal = ref(false)
+const editingNotebook = ref(null)
+const editingTag = ref(null)
 
 const randomColor = () => tagColors[Math.floor(Math.random() * tagColors.length)]
 
@@ -51,6 +56,50 @@ const handleCreate = (name, type) => {
 const goToSettings = () => {
   playSound('click')
   router.push('/settings')
+}
+
+// Handle notebook actions
+const handleNotebookAction = (command, notebook) => {
+  if (command === 'rename') {
+    editingNotebook.value = notebook
+    showEditNotebookModal.value = true
+  } else if (command === 'delete') {
+    ElMessageBox.confirm(
+      t('sidebar.deleteNotebookConfirm', { name: notebook.name }),
+      t('sidebar.deleteNotebook'),
+      { type: 'warning', confirmButtonText: t('common.delete'), cancelButtonText: t('common.cancel') }
+    ).then(() => emit('delete-notebook', notebook.id))
+      .catch(() => {})
+  }
+}
+
+// Handle tag actions
+const handleTagAction = (command, tag) => {
+  if (command === 'edit') {
+    editingTag.value = tag
+    showEditTagModal.value = true
+  } else if (command === 'delete') {
+    ElMessageBox.confirm(
+      t('sidebar.deleteTagConfirm'),
+      t('sidebar.deleteTag'),
+      { type: 'warning', confirmButtonText: t('common.delete'), cancelButtonText: t('common.cancel') }
+    ).then(() => emit('delete-tag', tag.id))
+      .catch(() => {})
+  }
+}
+
+// Handle save notebook
+const handleSaveNotebook = (data) => {
+  emit('update-notebook', editingNotebook.value.id, data.name)
+  showEditNotebookModal.value = false
+  editingNotebook.value = null
+}
+
+// Handle save tag
+const handleSaveTag = (data) => {
+  emit('update-tag', editingTag.value.id, data.name, data.color)
+  showEditTagModal.value = false
+  editingTag.value = null
 }
 </script>
 
@@ -133,14 +182,30 @@ const goToSettings = () => {
               @click="emit('change-view', nb.id); playSound('click')"
               @mouseenter="playSound('hover')"
             />
-            <button
-              v-if="!nb.is_default"
-              @click.stop="ElMessageBox.confirm(t('sidebar.deleteNotebookConfirm', { name: nb.name }), t('sidebar.deleteNotebook'), { type: 'warning', confirmButtonText: t('common.delete'), cancelButtonText: t('common.cancel') }).then(() => emit('delete-notebook', nb.id)).catch(() => {})"
-              class="ml-1 p-0.5 rounded text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all"
-              :title="t('sidebar.deleteNotebook')"
+            <!-- Settings dropdown -->
+            <el-dropdown
+              trigger="click"
+              @command="(cmd) => handleNotebookAction(cmd, nb)"
             >
-              <X class="w-3 h-3" />
-            </button>
+              <button
+                class="ml-1 p-0.5 rounded text-slate-400 hover:text-slate-600 transition-all opacity-0 group-hover:opacity-100"
+                @click.stop
+              >
+                <Settings class="w-3 h-3" />
+              </button>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item command="rename">
+                    <Edit2 class="w-4 h-4 inline mr-2" />
+                    {{ t('sidebar.renameNotebook') }}
+                  </el-dropdown-item>
+                  <el-dropdown-item v-if="!nb.is_default" command="delete" class="text-red-500">
+                    <Trash2 class="w-4 h-4 inline mr-2" />
+                    {{ t('sidebar.deleteNotebook') }}
+                  </el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
           </div>
           <div
             v-if="notebooks.length === 0"
@@ -164,20 +229,45 @@ const goToSettings = () => {
           <span
             v-for="tag in tags"
             :key="tag.id"
-            class="text-xs font-bold px-2 py-1 rounded-md border cursor-pointer transition-all flex items-center gap-1 group"
+            class="text-xs font-bold px-2 py-1 rounded-md border cursor-pointer transition-all flex items-center gap-1 group relative"
             :class="filterTagId === tag.id ? 'bg-black text-white border-black' : 'bg-slate-50 text-slate-700 border-slate-200 hover:border-black'"
-            @click="emit('filter-by-tag', tag.id); playSound('click')"
-            @mouseenter="playSound('hover')"
           >
             <span
               class="w-2 h-2 rounded-full border border-black/20"
               :style="{ backgroundColor: getTagColor(tag) }"
+              @click="emit('filter-by-tag', tag.id); playSound('click')"
+              @mouseenter="playSound('hover')"
             />
-            {{ tag.name }}
-            <X
-              class="w-3 h-3 text-red-400 hover:text-red-600 ml-1"
-              @click.stop="ElMessageBox.confirm(t('sidebar.deleteTagConfirm'), t('sidebar.deleteTag'), { type: 'warning', confirmButtonText: t('common.delete'), cancelButtonText: t('common.cancel') }).then(() => emit('delete-tag', tag.id)).catch(() => {})"
-            />
+            <span
+              @click="emit('filter-by-tag', tag.id); playSound('click')"
+              @mouseenter="playSound('hover')"
+            >
+              {{ tag.name }}
+            </span>
+            <!-- Settings dropdown -->
+            <el-dropdown
+              trigger="click"
+              @command="(cmd) => handleTagAction(cmd, tag)"
+            >
+              <button
+                class="ml-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                @click.stop
+              >
+                <Settings class="w-3 h-3 text-slate-400 hover:text-slate-600" />
+              </button>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item command="edit">
+                    <Edit2 class="w-4 h-4 inline mr-2" />
+                    {{ t('sidebar.editTag') }}
+                  </el-dropdown-item>
+                  <el-dropdown-item command="delete" class="text-red-500">
+                    <Trash2 class="w-4 h-4 inline mr-2" />
+                    {{ t('sidebar.deleteTag') }}
+                  </el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
           </span>
           <div
             v-if="tags.length === 0"
@@ -238,5 +328,20 @@ const goToSettings = () => {
     type="tag"
     @close="showTagModal = false"
     @create="(name) => handleCreate(name, 'tag')"
+  />
+  <EditModal
+    :show="showEditNotebookModal"
+    type="notebook"
+    :initial-name="editingNotebook?.name"
+    @close="showEditNotebookModal = false; editingNotebook = null"
+    @save="handleSaveNotebook"
+  />
+  <EditModal
+    :show="showEditTagModal"
+    type="tag"
+    :initial-name="editingTag?.name"
+    :initial-color="editingTag?.color"
+    @close="showEditTagModal = false; editingTag = null"
+    @save="handleSaveTag"
   />
 </template>

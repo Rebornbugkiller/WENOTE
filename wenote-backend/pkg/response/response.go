@@ -68,14 +68,6 @@ func Fail(c *gin.Context, code int, message string) {
 	})
 }
 
-func FailWithCode(c *gin.Context, code int) {
-	message, ok := codeMessages[code]
-	if !ok {
-		message = "未知错误"
-	}
-	Fail(c, code, message)
-}
-
 func BadRequest(c *gin.Context, message string) {
 	if message == "" {
 		message = codeMessages[CodeBadRequest]

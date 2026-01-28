@@ -70,16 +70,3 @@ func (j *JWTManager) ParseToken(tokenString string) (*CustomClaims, error) {
 
 	return nil, ErrTokenInvalid
 }
-
-func (j *JWTManager) RefreshToken(tokenString string) (string, error) {
-	claims, err := j.ParseToken(tokenString)
-	if err != nil {
-		return "", err
-	}
-
-	if claims.ExpiresAt.Time.Sub(time.Now()) < time.Hour {
-		return j.GenerateToken(claims.UserID, claims.Username)
-	}
-
-	return tokenString, nil
-}

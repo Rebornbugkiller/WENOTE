@@ -31,8 +31,10 @@ export default {
     noTags: 'No tags yet',
     deleteNotebook: 'Delete Notebook',
     deleteNotebookConfirm: 'Notebook "{name}" will be permanently deleted. Notes will be moved to default notebook.',
+    renameNotebook: 'Rename Notebook',
     deleteTag: 'Delete Tag',
     deleteTagConfirm: 'Are you sure to delete this tag?',
+    editTag: 'Edit Tag',
     online: 'Online'
   },
   editor: {
@@ -64,8 +66,12 @@ export default {
   createModal: {
     createNotebook: 'Create Notebook',
     createTag: 'Create Tag',
+    editNotebook: 'Edit Notebook',
+    editTag: 'Edit Tag',
     notebookPlaceholder: 'Enter notebook name...',
-    tagPlaceholder: 'Enter tag name...'
+    tagPlaceholder: 'Enter tag name...',
+    namePlaceholder: 'Enter name...',
+    selectColor: 'Select Color'
   },
   login: {
     newGame: 'New Game',
@@ -102,7 +108,10 @@ export default {
     aiGenerateSuccess: 'AI generation completed',
     aiGenerateFailed: 'AI generation failed',
     tagsApplied: 'Tags applied',
-    applyTagsFailed: 'Failed to apply tags'
+    applyTagsFailed: 'Failed to apply tags',
+    notebookUpdated: 'Notebook updated',
+    tagUpdated: 'Tag updated',
+    updateFailed: 'Update failed'
   },
   footer: {
     welcome: 'WELCOME TO WENOTE SERVER',
