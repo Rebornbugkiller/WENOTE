@@ -193,8 +193,31 @@ const handleGenerateAI = async () => {
     ElMessage.warning(t('messages.saveFirst'))
     return
   }
-  if (!formData.value.content) {
+
+  // Get latest content from editor
+  if (vditor.value) {
+    formData.value.content = vditor.value.getValue()
+  }
+
+  if (!formData.value.content || !formData.value.content.trim()) {
     ElMessage.warning(t('messages.contentEmpty'))
+    return
+  }
+
+  // Save note first before generating AI
+  try {
+    const { updateNote } = await import('../api/note')
+    await updateNote(formData.value.id, {
+      title: formData.value.title,
+      content: formData.value.content,
+      notebook_id: formData.value.notebook_id,
+      is_starred: formData.value.is_starred,
+      is_pinned: formData.value.is_pinned,
+      tag_ids: formData.value.tags?.map(t => t.id) || []
+    })
+  } catch (err) {
+    console.error('Save failed before AI generation:', err)
+    ElMessage.error('保存失败，无法生成 AI 摘要')
     return
   }
 
