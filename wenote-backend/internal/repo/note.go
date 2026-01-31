@@ -304,15 +304,6 @@ func (r *NoteRepo) BatchUpdateNotebook(noteIDs []uint64, notebookID uint64) (int
 	return result.RowsAffected, result.Error
 }
 
-// MoveOrphanedToNotebook 将原笔记本已删除的笔记移到指定笔记本
-func (r *NoteRepo) MoveOrphanedToNotebook(noteIDs []uint64, notebookID uint64) error {
-	// 更新那些原笔记本已不存在的笔记
-	return DB.Exec(`
-		UPDATE notes SET notebook_id = ?
-		WHERE id IN ? AND notebook_id NOT IN (SELECT id FROM notebooks)
-	`, notebookID, noteIDs).Error
-}
-
 // SoftDeleteByNotebookID 按笔记本ID软删除所有笔记
 func (r *NoteRepo) SoftDeleteByNotebookID(notebookID uint64) (int64, error) {
 	now := time.Now()
@@ -322,16 +313,3 @@ func (r *NoteRepo) SoftDeleteByNotebookID(notebookID uint64) (int64, error) {
 	return result.RowsAffected, result.Error
 }
 
-// ExistsByUserIDAndTitle 检查用户是否已有同名笔记
-func (r *NoteRepo) ExistsByUserIDAndTitle(userID uint64, title string, excludeID uint64) (bool, error) {
-	if title == "" {
-		return false, nil // 空标题不检查
-	}
-	var count int64
-	query := DB.Model(&model.Note{}).Where("user_id = ? AND title = ? AND deleted_at IS NULL", userID, title)
-	if excludeID > 0 {
-		query = query.Where("id != ?", excludeID)
-	}
-	err := query.Count(&count).Error
-	return count > 0, err
-}

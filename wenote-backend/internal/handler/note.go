@@ -2,15 +2,13 @@ package handler
 
 import (
 	"context"
+	"strconv"
 	"time"
-)
 
-import (
 	"wenote-backend/internal/model"
 	"wenote-backend/internal/repo"
 	"wenote-backend/internal/service"
 	"wenote-backend/pkg/response"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 )

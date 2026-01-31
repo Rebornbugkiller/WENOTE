@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { getStatsOverview, getStatsTrend, getStatsTagsapi, getStatsNotebooks } from '../../api/stats'
+import { getStatsOverview, getStatsTrend, getStatsTags, getStatsNotebooks } from '../../api/stats'
 import { useGamificationStore } from '../../stores/gamification'
 import * as echarts from 'echarts'
 import { BarChart3, TrendingUp, Tag, BookOpen } from 'lucide-vue-next'
@@ -38,7 +38,7 @@ const loadData = async () => {
     renderTrendChart(trendData.list)
 
     // 加载标签统计并绘制图表
-    const tagData = await getStatsTagsapi(10)
+    const tagData = await getStatsTags(10)
     renderTagChart(tagData.list)
 
     // 加载笔记本统计并绘制图表

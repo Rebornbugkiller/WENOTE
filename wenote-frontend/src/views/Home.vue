@@ -203,7 +203,6 @@ const handleLogout = () => {
 
 // Handle note click
 const handleNoteClick = (note) => {
-  console.log('🖱️ Note clicked:', note)
   playSound('click')
   router.push(`/editor/${note.id}`)
 }

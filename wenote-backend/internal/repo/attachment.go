@@ -39,10 +39,3 @@ func (r *AttachmentRepo) Delete(id uint64) error {
 	return DB.Delete(&model.NoteAttachment{}, id).Error
 }
 
-// DeleteByNoteID 删除笔记的所有附件
-func (r *AttachmentRepo) DeleteByNoteID(noteID uint64) error {
-	return DB.Where("note_id = ?", noteID).Delete(&model.NoteAttachment{}).Error
-}
-
-
-

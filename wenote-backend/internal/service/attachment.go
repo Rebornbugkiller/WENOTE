@@ -6,7 +6,6 @@ import (
 	"mime/multipart"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 	"wenote-backend/internal/model"
 	"wenote-backend/internal/repo"
@@ -152,22 +151,4 @@ func (s *AttachmentService) DeleteAttachment(userID uint64, attachmentID uint64)
 	// 4. 删除数据库记录
 	return s.repo.Delete(attachmentID)
 }
-
-// GetImageExtension 根据MIME类型获取文件扩展名
-func GetImageExtension(mimeType string) string {
-	switch strings.ToLower(mimeType) {
-	case "image/jpeg", "image/jpg":
-		return ".jpg"
-	case "image/png":
-		return ".png"
-	case "image/gif":
-		return ".gif"
-	case "image/webp":
-		return ".webp"
-	default:
-		return ""
-	}
-}
-
-
 
