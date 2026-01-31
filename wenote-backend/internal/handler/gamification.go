@@ -55,7 +55,7 @@ func (h *GamificationHandler) UpdateGoal(c *gin.Context) {
 
 	var req model.UpdateGoalReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "无效的请求参数")
+		response.ValidationError(c, err)
 		return
 	}
 

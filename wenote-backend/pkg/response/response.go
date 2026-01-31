@@ -3,6 +3,8 @@ package response
 import (
 	"net/http"
 
+	"wenote-backend/pkg/validator"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -101,4 +103,10 @@ func TooManyRequests(c *gin.Context, message string) {
 		message = codeMessages[CodeTooManyRequests]
 	}
 	Fail(c, CodeTooManyRequests, message)
+}
+
+// ValidationError 处理验证错误，返回用户友好的提示
+func ValidationError(c *gin.Context, err error) {
+	msg := validator.TranslateValidationError(err)
+	BadRequest(c, msg)
 }

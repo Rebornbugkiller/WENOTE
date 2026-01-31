@@ -9,7 +9,7 @@
         {{ achievement.icon }}
       </div>
       <div class="text-xs font-black truncate" :class="unlocked ? 'text-slate-800' : 'text-slate-400'">
-        {{ achievement.name_zh || achievement.name }}
+        {{ achievementName }}
       </div>
       <div v-if="unlocked && achievement.unlocked_at" class="text-[10px] text-slate-400 mt-1">
         {{ formatDate(achievement.unlocked_at) }}
@@ -23,6 +23,9 @@
 
 <script setup>
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t, locale } = useI18n()
 
 const props = defineProps({
   achievement: {
@@ -50,6 +53,13 @@ const badgeClasses = computed(() => {
   return rarityColors[props.achievement.rarity] || rarityColors.common
 })
 
+const achievementName = computed(() => {
+  if (locale.value === 'zh-CN') {
+    return props.achievement.name_zh || props.achievement.name
+  }
+  return props.achievement.name
+})
+
 const formatDate = (dateStr) => {
   if (!dateStr) return ''
   const date = new Date(dateStr)
@@ -60,13 +70,16 @@ const getThresholdText = () => {
   const { category, threshold } = props.achievement
   switch (category) {
     case 'notes':
-      return `${threshold} 篇笔记`
+      return t('achievementThreshold.notes', { threshold })
     case 'streak':
-      return `连续 ${threshold} 天`
+      return t('achievementThreshold.streak', { threshold })
     case 'words':
-      return `${threshold >= 1000 ? (threshold / 1000) + 'k' : threshold} 字`
+      if (threshold >= 1000) {
+        return t('achievementThreshold.words', { threshold: (threshold / 1000) + 'k' })
+      }
+      return t('achievementThreshold.words', { threshold })
     case 'goals':
-      return `完成 ${threshold} 次`
+      return t('achievementThreshold.goals', { threshold })
     default:
       return ''
   }

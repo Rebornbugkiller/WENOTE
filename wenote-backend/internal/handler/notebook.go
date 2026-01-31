@@ -26,7 +26,7 @@ func (h *NotebookHandler) Create(c *gin.Context) {
 	userID := c.GetUint64("userID")
 	var req model.NotebookCreateReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "请求参数错误: "+err.Error())
+		response.ValidationError(c, err)
 		return
 	}
 
@@ -83,7 +83,7 @@ func (h *NotebookHandler) Update(c *gin.Context) {
 
 	var req model.NotebookUpdateReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "请求参数错误: "+err.Error())
+		response.ValidationError(c, err)
 		return
 	}
 

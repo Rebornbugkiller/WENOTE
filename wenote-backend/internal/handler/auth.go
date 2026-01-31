@@ -21,7 +21,7 @@ func NewAuthHandler() *AuthHandler {
 func (h *AuthHandler) Register(c *gin.Context) {
 	var req model.RegisterReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "请求参数错误: "+err.Error())
+		response.ValidationError(c, err)
 		return
 	}
 
@@ -41,7 +41,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 func (h *AuthHandler) Login(c *gin.Context) {
 	var req model.LoginReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "请求参数错误: "+err.Error())
+		response.ValidationError(c, err)
 		return
 	}
 

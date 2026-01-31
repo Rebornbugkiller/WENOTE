@@ -128,7 +128,7 @@ onMounted(async () => {
             ElMessage.warning(t('messages.saveFirst'))
             return null
           }
-          
+
           const results = []
           for (const file of files) {
             try {
@@ -137,7 +137,7 @@ onMounted(async () => {
                 url: response.url
               })
             } catch (error) {
-              ElMessage.error(`图片上传失败: ${file.name}`)
+              ElMessage.error(t('messages.imageUploadFailed') + `: ${file.name}`)
               console.error('Upload error:', error)
             }
           }
@@ -286,7 +286,7 @@ const handleAIAssist = async (action) => {
         // 续写：需要上下文
         context = fullText || ''
         if (!context) {
-          ElMessage.warning('请先输入一些内容作为上下文')
+          ElMessage.warning(t('messages.enterContextFirst'))
           return
         }
         break
@@ -295,7 +295,7 @@ const handleAIAssist = async (action) => {
         // 改写/扩写：需要选中文本
         text = selectedText
         if (!text) {
-          ElMessage.warning('请先选中要处理的文本')
+          ElMessage.warning(t('messages.selectTextFirst'))
           return
         }
         break
@@ -303,7 +303,7 @@ const handleAIAssist = async (action) => {
         // 翻译：需要选中文本，自动检测语言
         text = selectedText
         if (!text) {
-          ElMessage.warning('请先选中要翻译的文本')
+          ElMessage.warning(t('messages.selectTextToTranslate'))
           return
         }
         // 简单判断：包含中文则翻译为英文，否则翻译为中文
@@ -313,7 +313,7 @@ const handleAIAssist = async (action) => {
 
     loading = ElLoading.service({
       lock: true,
-      text: 'AI 正在处理中...',
+      text: t('messages.aiProcessing'),
       background: 'rgba(0, 0, 0, 0.7)',
     })
 
@@ -329,10 +329,10 @@ const handleAIAssist = async (action) => {
       vditor.value.insertValue(result)
     }
 
-    ElMessage.success('AI 处理完成')
+    ElMessage.success(t('messages.aiProcessSuccess'))
   } catch (error) {
     console.error('AI assist error:', error)
-    ElMessage.error(error.response?.data?.message || 'AI 处理失败')
+    ElMessage.error(error.response?.data?.message || t('messages.aiProcessFailed'))
   } finally {
     if (loading) {
       loading.close()
@@ -432,35 +432,35 @@ const handleAIAssist = async (action) => {
 
                   <!-- AI写作助手快捷按钮 -->
                   <div class="mb-4 pt-3 border-t border-green-100">
-                    <p class="text-[10px] font-bold text-slate-400 uppercase mb-2">写作助手</p>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase mb-2">{{ t('editor.writingAssistant') }}</p>
                     <div class="grid grid-cols-2 gap-2">
                       <button
                         @click="handleAIAssist('continue')"
                         class="px-2 py-1.5 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 text-xs font-bold rounded transition-colors"
                       >
-                        ✍️ AI续写
+                        ✍️ {{ t('editor.aiContinue') }}
                       </button>
                       <button
                         @click="handleAIAssist('rewrite')"
                         class="px-2 py-1.5 bg-purple-50 hover:bg-purple-100 border border-purple-200 text-purple-700 text-xs font-bold rounded transition-colors"
                       >
-                        ✨ AI改写
+                        ✨ {{ t('editor.aiRewrite') }}
                       </button>
                       <button
                         @click="handleAIAssist('expand')"
                         class="px-2 py-1.5 bg-orange-50 hover:bg-orange-100 border border-orange-200 text-orange-700 text-xs font-bold rounded transition-colors"
                       >
-                        📝 AI扩写
+                        📝 {{ t('editor.aiExpand') }}
                       </button>
                       <button
                         @click="handleAIAssist('translate')"
                         class="px-2 py-1.5 bg-teal-50 hover:bg-teal-100 border border-teal-200 text-teal-700 text-xs font-bold rounded transition-colors"
                       >
-                        🌐 AI翻译
+                        🌐 {{ t('editor.aiTranslate') }}
                       </button>
                     </div>
                     <p class="text-[9px] text-slate-400 mt-2 italic">
-                      提示：改写/扩写/翻译需先选中文本
+                      {{ t('editor.aiAssistHint') }}
                     </p>
                   </div>
 

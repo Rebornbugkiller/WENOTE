@@ -35,7 +35,7 @@ func (h *NoteHandler) Create(c *gin.Context) {
 
 	var req model.NoteCreateReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "请求参数错误: "+err.Error())
+		response.ValidationError(c, err)
 		return
 	}
 
@@ -85,7 +85,7 @@ func (h *NoteHandler) Update(c *gin.Context) {
 
 	var req model.NoteUpdateReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "请求参数错误: "+err.Error())
+		response.ValidationError(c, err)
 		return
 	}
 
@@ -173,7 +173,7 @@ func (h *NoteHandler) List(c *gin.Context) {
 
 	var req model.NoteListReq
 	if err := c.ShouldBindQuery(&req); err != nil {
-		response.BadRequest(c, "请求参数错误: "+err.Error())
+		response.ValidationError(c, err)
 		return
 	}
 
@@ -197,7 +197,7 @@ func (h *NoteHandler) UpdateTags(c *gin.Context) {
 
 	var req model.NoteTagsReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "请求参数错误: "+err.Error())
+		response.ValidationError(c, err)
 		return
 	}
 
@@ -268,7 +268,7 @@ func (h *NoteHandler) BatchDelete(c *gin.Context) {
 
 	var req model.BatchDeleteReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "请求参数错误: "+err.Error())
+		response.ValidationError(c, err)
 		return
 	}
 
@@ -301,7 +301,7 @@ func (h *NoteHandler) BatchRestore(c *gin.Context) {
 
 	var req model.BatchRestoreReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "请求参数错误: "+err.Error())
+		response.ValidationError(c, err)
 		return
 	}
 
@@ -360,7 +360,7 @@ func (h *NoteHandler) BatchMove(c *gin.Context) {
 
 	var req model.BatchMoveReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "请求参数错误: "+err.Error())
+		response.ValidationError(c, err)
 		return
 	}
 
@@ -422,7 +422,7 @@ func (h *NoteHandler) GenerateSummaryAndTags(c *gin.Context) {
 func (h *NoteHandler) AIAssist(c *gin.Context) {
 	var req model.AIAssistReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "请求参数错误: "+err.Error())
+		response.ValidationError(c, err)
 		return
 	}
 

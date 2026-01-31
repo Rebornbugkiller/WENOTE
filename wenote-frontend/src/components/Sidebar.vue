@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { LayoutGrid, Star, Book, Trash2, Plus, X, Settings, Edit2 } from 'lucide-vue-next'
@@ -12,7 +12,7 @@ import { tagColors, getTagColor } from '../utils/color'
 import { AVATAR_STYLES } from '../stores/user'
 
 const router = useRouter()
-const { t } = useI18n()
+const { t, locale } = useI18n()
 
 const props = defineProps({
   notebooks: { type: Array, default: () => [] },
@@ -23,6 +23,14 @@ const props = defineProps({
   sidebarOpen: { type: Boolean, default: true },
   gameMode: { type: Boolean, default: false }
 })
+
+// Get notebook display name (handle default notebook translation)
+const getNotebookDisplayName = (notebook) => {
+  if (notebook.is_default) {
+    return t('sidebar.uncategorized')
+  }
+  return notebook.name
+}
 
 const playSound = (type) => {
   if (props.gameMode) {
@@ -175,7 +183,7 @@ const handleSaveTag = (data) => {
           >
             <MenuButton
               :icon="Book"
-              :label="nb.name"
+              :label="getNotebookDisplayName(nb)"
               :count="nb.note_count"
               :active="currentView === nb.id"
               class="flex-1"

@@ -233,7 +233,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onUnmounted } from 'vue'
+import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ElMessage } from 'element-plus'
@@ -269,7 +269,7 @@ const showPassword = ref(false)
 const showConfirmPassword = ref(false)
 const isLoading = ref(false)
 const showSettlement = ref(false)
-const isPlayingMusic = ref(false)
+const isPlayingMusic = ref(true)
 const avatarMessage = ref(t('login.insertCoinBubble'))
 
 const form = reactive({
@@ -426,6 +426,16 @@ const resetForm = () => {
 
 onUnmounted(() => {
   if (comboTimer) clearTimeout(comboTimer)
+})
+
+// Auto-play BGM on first user interaction
+onMounted(() => {
+  window.addEventListener('click', () => {
+    AudioEngine.init()
+    if (isPlayingMusic.value && !AudioEngine.isPlaying) {
+      AudioEngine.startBGM()
+    }
+  }, { once: true })
 })
 </script>
 

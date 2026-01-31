@@ -27,7 +27,7 @@ func (h *TagHandler) Create(c *gin.Context) {
 
 	var req model.TagCreateReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "请求参数错误: "+err.Error())
+		response.ValidationError(c, err)
 		return
 	}
 
@@ -68,7 +68,7 @@ func (h *TagHandler) Update(c *gin.Context) {
 
 	var req model.TagUpdateReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "请求参数错误: "+err.Error())
+		response.ValidationError(c, err)
 		return
 	}
 

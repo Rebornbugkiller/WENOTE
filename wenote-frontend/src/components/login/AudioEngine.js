@@ -163,8 +163,17 @@ export const AudioEngine = {
       this.bgmAudio.loop = true
       this.bgmAudio.volume = 0.3
     }
-    this.bgmAudio.play()
-    this.isPlaying = true
+    const playPromise = this.bgmAudio.play()
+    if (playPromise !== undefined) {
+      playPromise.then(() => {
+        this.isPlaying = true
+      }).catch((error) => {
+        console.log('BGM autoplay was prevented:', error)
+        this.isPlaying = false
+      })
+    } else {
+      this.isPlaying = true
+    }
   },
 
   stopBGM() {

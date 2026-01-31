@@ -1,6 +1,7 @@
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
 import router from '../router'
+import i18n from '../i18n'
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || '/api/v1',
@@ -19,7 +20,7 @@ api.interceptors.response.use(
   response => {
     const { code, message, data } = response.data
     if (code !== 0) {
-      ElMessage.error(message || '请求失败')
+      ElMessage.error(message || i18n.global.t('common.requestFailed'))
       if (code === 401) {
         localStorage.removeItem('token')
         router.push('/login')
@@ -29,7 +30,7 @@ api.interceptors.response.use(
     return data
   },
   error => {
-    ElMessage.error(error.message || '网络错误')
+    ElMessage.error(error.message || i18n.global.t('common.networkError'))
     return Promise.reject(error)
   }
 )

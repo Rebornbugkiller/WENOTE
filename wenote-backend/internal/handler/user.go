@@ -43,7 +43,7 @@ func (h *UserHandler) UpdateProfile(c *gin.Context) {
 
 	var req model.UpdateProfileReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "请求参数错误: "+err.Error())
+		response.ValidationError(c, err)
 		return
 	}
 
@@ -73,7 +73,7 @@ func (h *UserHandler) ChangePassword(c *gin.Context) {
 
 	var req model.ChangePasswordReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "请求参数错误: "+err.Error())
+		response.ValidationError(c, err)
 		return
 	}
 
@@ -101,7 +101,7 @@ func (h *UserHandler) DeleteAccount(c *gin.Context) {
 
 	var req model.DeleteAccountReq
 	if err := c.ShouldBindJSON(&req); err != nil {
-		response.BadRequest(c, "请求参数错误: "+err.Error())
+		response.ValidationError(c, err)
 		return
 	}
 

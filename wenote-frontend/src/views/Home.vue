@@ -28,7 +28,7 @@ const toggleLocale = () => {
 
 // Game Mode State
 const isGameMode = ref(true)
-const isPlayingMusic = ref(false)
+const isPlayingMusic = ref(true)
 
 // Stats Panel State
 const showStats = ref(false)
@@ -161,7 +161,11 @@ const viewTitle = computed(() => {
   if (currentView.value === 'starred') return `⭐ ${t('home.favorites')}`
   if (typeof currentView.value === 'number') {
     const nb = notebooks.value.find(n => n.id === currentView.value)
-    return `📒 ${nb?.name || t('sidebar.notebooks')}`
+    if (nb) {
+      const displayName = nb.is_default ? t('sidebar.uncategorized') : nb.name
+      return `📒 ${displayName}`
+    }
+    return `📒 ${t('sidebar.notebooks')}`
   }
   return '📝 Notes'
 })
@@ -213,9 +217,15 @@ onMounted(async () => {
   // Fetch gamification status
   await gamificationStore.fetchStatus()
 
-  // Init audio context on first user interaction if needed
+  // Init audio context and auto-play BGM on first user interaction
   window.addEventListener('click', () => {
-    if (isGameMode.value) AudioEngine.init()
+    if (isGameMode.value) {
+      AudioEngine.init()
+      // Auto-play BGM if isPlayingMusic is true
+      if (isPlayingMusic.value && !AudioEngine.isPlaying) {
+        AudioEngine.startBGM()
+      }
+    }
   }, { once: true })
 })
 
@@ -337,7 +347,7 @@ onUnmounted(() => {
             @mouseenter="playSound('hover')"
           >
             <BarChart3 class="w-4 h-4" />
-            统计
+            {{ t('stats.title') }}
           </button>
 
           <!-- Logout -->
@@ -359,7 +369,7 @@ onUnmounted(() => {
           <StatsDashboard />
         </div>
         <!-- Title & New Note Button -->
-        <div class="flex justify-between items-end mb-8">
+        <div v-if="!showStats" class="flex justify-between items-end mb-8">
           <div>
             <h2 class="text-4xl font-black text-slate-800 mb-1">
               {{ viewTitle }}
@@ -380,7 +390,7 @@ onUnmounted(() => {
         </div>
 
         <!-- 回收站批量操作栏 -->
-        <div v-if="currentView === 'trash' && notes.length > 0" class="flex items-center gap-4 mb-4 p-3 bg-white rounded-xl border-2 border-slate-200">
+        <div v-if="!showStats && currentView === 'trash' && notes.length > 0" class="flex items-center gap-4 mb-4 p-3 bg-white rounded-xl border-2 border-slate-200">
           <label class="flex items-center gap-2 cursor-pointer">
             <input type="checkbox" :checked="isAllSelected" @change="toggleSelectAll" class="w-5 h-5 accent-green-500" />
             <span class="font-bold text-slate-600">{{ t('home.selectAll') }}</span>
@@ -412,7 +422,7 @@ onUnmounted(() => {
         </div>
 
         <!-- Notes Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-20">
+        <div v-if="!showStats" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-20">
           <NoteCard
             v-for="(note, index) in notes"
             :key="note.id"

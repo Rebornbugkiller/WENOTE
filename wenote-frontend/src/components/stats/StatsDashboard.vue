@@ -1,5 +1,6 @@
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { getStatsOverview, getStatsTrend, getStatsTagsapi, getStatsNotebooks } from '../../api/stats'
 import { useGamificationStore } from '../../stores/gamification'
 import * as echarts from 'echarts'
@@ -9,6 +10,7 @@ import DailyGoalProgress from '../gamification/DailyGoalProgress.vue'
 import AchievementGallery from '../gamification/AchievementGallery.vue'
 import WritingReport from '../gamification/WritingReport.vue'
 
+const { t } = useI18n()
 const gamificationStore = useGamificationStore()
 
 const overview = ref({})
@@ -144,7 +146,15 @@ const renderNotebookChart = (data) => {
 
   const chart = echarts.init(notebookChartRef.value)
   const colors = ['#f59e0b', '#10b981', '#3b82f6', '#ef4444', '#8b5cf6', '#ec4899']
-  
+
+  // 处理笔记本名称国际化（默认笔记本"未分类"需要翻译）
+  const getNotebookDisplayName = (name, isDefault) => {
+    if (isDefault || name === '未分类') {
+      return t('sidebar.uncategorized')
+    }
+    return name
+  }
+
   const option = {
     tooltip: {
       trigger: 'item',
@@ -167,7 +177,7 @@ const renderNotebookChart = (data) => {
         fontWeight: 'bold'
       },
       data: data.map((d, i) => ({
-        name: d.notebook_name,
+        name: getNotebookDisplayName(d.notebook_name, d.is_default),
         value: d.count,
         itemStyle: { color: colors[i % colors.length] }
       }))
@@ -187,7 +197,7 @@ onMounted(() => {
     <!-- 标题 -->
     <div class="flex items-center gap-3">
       <BarChart3 class="w-8 h-8" />
-      <h2 class="text-3xl font-black">数据统计</h2>
+      <h2 class="text-3xl font-black">{{ t('stats.dataStats') }}</h2>
     </div>
 
     <!-- 游戏化组件 -->
@@ -213,25 +223,25 @@ onMounted(() => {
     <!-- 概览卡片 -->
     <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
       <div class="bg-white border-4 border-black rounded-2xl p-4 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-        <div class="text-sm font-bold text-slate-400 uppercase mb-1">总笔记数</div>
+        <div class="text-sm font-bold text-slate-400 uppercase mb-1">{{ t('stats.totalNotes') }}</div>
         <div class="text-4xl font-black text-slate-800">{{ overview.total_notes || 0 }}</div>
-        <div class="text-xs text-green-600 font-bold mt-1">本周 +{{ overview.this_week_notes || 0 }}</div>
+        <div class="text-xs text-green-600 font-bold mt-1">{{ t('stats.thisWeek') }} +{{ overview.this_week_notes || 0 }}</div>
       </div>
 
       <div class="bg-white border-4 border-black rounded-2xl p-4 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-        <div class="text-sm font-bold text-slate-400 uppercase mb-1">笔记本</div>
+        <div class="text-sm font-bold text-slate-400 uppercase mb-1">{{ t('stats.notebooks') }}</div>
         <div class="text-4xl font-black text-slate-800">{{ overview.total_notebooks || 0 }}</div>
       </div>
 
       <div class="bg-white border-4 border-black rounded-2xl p-4 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-        <div class="text-sm font-bold text-slate-400 uppercase mb-1">标签</div>
+        <div class="text-sm font-bold text-slate-400 uppercase mb-1">{{ t('stats.tags') }}</div>
         <div class="text-4xl font-black text-slate-800">{{ overview.total_tags || 0 }}</div>
       </div>
 
       <div class="bg-white border-4 border-black rounded-2xl p-4 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
-        <div class="text-sm font-bold text-slate-400 uppercase mb-1">总字数</div>
+        <div class="text-sm font-bold text-slate-400 uppercase mb-1">{{ t('stats.totalWords') }}</div>
         <div class="text-4xl font-black text-slate-800">{{ (overview.total_words || 0).toLocaleString() }}</div>
-        <div class="text-xs text-blue-600 font-bold mt-1">本周 +{{ (overview.this_week_words || 0).toLocaleString() }}</div>
+        <div class="text-xs text-blue-600 font-bold mt-1">{{ t('stats.thisWeek') }} +{{ (overview.this_week_words || 0).toLocaleString() }}</div>
       </div>
     </div>
 
@@ -241,7 +251,7 @@ onMounted(() => {
       <div class="bg-white border-4 border-black rounded-2xl p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
         <div class="flex items-center gap-2 mb-4">
           <TrendingUp class="w-5 h-5 text-green-600" />
-          <h3 class="text-xl font-black">最近7天趋势</h3>
+          <h3 class="text-xl font-black">{{ t('stats.last7Days') }}</h3>
         </div>
         <div ref="trendChartRef" class="w-full h-64"></div>
       </div>
@@ -250,7 +260,7 @@ onMounted(() => {
       <div class="bg-white border-4 border-black rounded-2xl p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
         <div class="flex items-center gap-2 mb-4">
           <Tag class="w-5 h-5 text-purple-600" />
-          <h3 class="text-xl font-black">TOP10 标签</h3>
+          <h3 class="text-xl font-black">{{ t('stats.top10Tags') }}</h3>
         </div>
         <div ref="tagChartRef" class="w-full h-64"></div>
       </div>
@@ -259,7 +269,7 @@ onMounted(() => {
       <div class="bg-white border-4 border-black rounded-2xl p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] lg:col-span-2">
         <div class="flex items-center gap-2 mb-4">
           <BookOpen class="w-5 h-5 text-blue-600" />
-          <h3 class="text-xl font-black">笔记本分布</h3>
+          <h3 class="text-xl font-black">{{ t('stats.notebookDistribution') }}</h3>
         </div>
         <div ref="notebookChartRef" class="w-full h-80"></div>
       </div>

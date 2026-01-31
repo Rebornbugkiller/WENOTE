@@ -9,17 +9,17 @@
 
             <!-- Title -->
             <div class="font-black text-2xl text-slate-800 mb-2">
-              成就解锁！
+              {{ t('gamification.achievementUnlocked') }}
             </div>
 
             <!-- Achievement Name -->
             <div class="font-black text-xl" :class="rarityTextColor">
-              {{ achievement.name_zh || achievement.name }}
+              {{ achievementName }}
             </div>
 
             <!-- Description -->
             <div class="text-slate-500 text-sm mt-2 mb-6">
-              {{ achievement.description_zh || achievement.description }}
+              {{ achievementDescription }}
             </div>
 
             <!-- Rarity Badge -->
@@ -32,7 +32,7 @@
               @click="handleClose"
               class="mt-6 w-full py-3 bg-black text-white font-black rounded-xl border-2 border-transparent shadow-[4px_4px_0px_0px_rgba(34,197,94,1)] hover:shadow-[2px_2px_0px_0px_rgba(34,197,94,1)] hover:translate-x-[2px] hover:translate-y-[2px] transition-all"
             >
-              太棒了！
+              {{ t('gamification.awesome') }}
             </button>
           </div>
         </div>
@@ -43,6 +43,9 @@
 
 <script setup>
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { t, locale } = useI18n()
 
 const props = defineProps({
   show: {
@@ -56,6 +59,22 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close'])
+
+const achievementName = computed(() => {
+  if (!props.achievement) return ''
+  if (locale.value === 'zh-CN') {
+    return props.achievement.name_zh || props.achievement.name
+  }
+  return props.achievement.name
+})
+
+const achievementDescription = computed(() => {
+  if (!props.achievement) return ''
+  if (locale.value === 'zh-CN') {
+    return props.achievement.description_zh || props.achievement.description
+  }
+  return props.achievement.description
+})
 
 const rarityGlow = computed(() => {
   const glows = {
@@ -88,13 +107,8 @@ const rarityBadgeClass = computed(() => {
 })
 
 const rarityText = computed(() => {
-  const texts = {
-    common: '普通',
-    rare: '稀有',
-    epic: '史诗',
-    legendary: '传说'
-  }
-  return texts[props.achievement?.rarity] || '普通'
+  const key = props.achievement?.rarity || 'common'
+  return t(`gamification.${key}`)
 })
 
 const handleClose = () => {

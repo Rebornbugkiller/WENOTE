@@ -1,10 +1,13 @@
 import { ref, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { useI18n } from 'vue-i18n'
 import { getNotes, getTrashNotes, createNote, updateNote, deleteNote, restoreNote, batchDelete, batchRestore, emptyTrash } from '../api/note'
 import { getNotebooks, getDefaultNotebook, createNotebook, updateNotebook, deleteNotebook } from '../api/notebook'
 import { getTags, createTag, updateTag, deleteTag } from '../api/tag'
 
 export function useNotes() {
+  const { t } = useI18n()
+
   // State
   const notes = ref([])
   const notebooks = ref([])
@@ -61,7 +64,7 @@ export function useNotes() {
       total.value = res.total || 0
     } catch (err) {
       console.error('Failed to fetch notes:', err)
-      ElMessage.error('获取笔记失败')
+      ElMessage.error(t('messages.fetchNotesFailed'))
     } finally {
       isLoading.value = false
     }
@@ -87,7 +90,7 @@ export function useNotes() {
       return data
     } catch (err) {
       console.error('Failed to create note:', err)
-      ElMessage.error('创建笔记失败')
+      ElMessage.error(t('messages.createNoteFailed'))
       throw err
     }
   }
@@ -103,11 +106,11 @@ export function useNotes() {
         is_pinned: noteData.is_pinned,
         tag_ids: noteData.tags?.map(t => t.id) || []
       })
-      ElMessage.success('保存成功')
+      ElMessage.success(t('editor.saveSuccess'))
       await Promise.all([fetchNotes(), fetchInitialData()])
     } catch (err) {
       console.error('Failed to update note:', err)
-      ElMessage.error('保存失败')
+      ElMessage.error(t('editor.saveFailed'))
       throw err
     }
   }
@@ -115,12 +118,12 @@ export function useNotes() {
   // Delete a note (soft delete or permanent)
   const handleDeleteNote = async (id) => {
     const isTrash = currentView.value === 'trash'
-    const confirmMsg = isTrash ? '确定永久删除这条笔记吗？删除后无法恢复！' : '确定将这条笔记移入回收站吗？'
+    const confirmMsg = isTrash ? t('messages.deleteNoteConfirm') : t('messages.moveToTrashConfirm')
 
     try {
-      await ElMessageBox.confirm(confirmMsg, '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+      await ElMessageBox.confirm(confirmMsg, t('common.hint'), {
+        confirmButtonText: t('common.confirm'),
+        cancelButtonText: t('common.cancel'),
         type: isTrash ? 'warning' : 'info'
       })
     } catch {
@@ -129,11 +132,11 @@ export function useNotes() {
 
     try {
       await deleteNote(id)
-      ElMessage.success(isTrash ? '已永久删除' : '已移入回收站')
+      ElMessage.success(isTrash ? t('messages.permanentlyDeleted') : t('messages.movedToTrash'))
       await Promise.all([fetchNotes(), fetchInitialData()])
     } catch (err) {
       console.error('Failed to delete note:', err)
-      ElMessage.error('删除失败')
+      ElMessage.error(t('messages.deleteFailed'))
     }
   }
 
@@ -141,11 +144,11 @@ export function useNotes() {
   const handleRestoreNote = async (id) => {
     try {
       await restoreNote(id)
-      ElMessage.success('已恢复')
+      ElMessage.success(t('messages.restored'))
       await Promise.all([fetchNotes(), fetchInitialData()])
     } catch (err) {
       console.error('Failed to restore note:', err)
-      ElMessage.error('恢复失败')
+      ElMessage.error(t('messages.restoreFailed'))
     }
   }
 
@@ -159,7 +162,7 @@ export function useNotes() {
       await fetchNotes()
     } catch (err) {
       console.error('Failed to toggle status:', err)
-      ElMessage.error('操作失败')
+      ElMessage.error(t('messages.operationFailed'))
     }
   }
 
@@ -167,11 +170,11 @@ export function useNotes() {
   const handleCreateNotebook = async (name) => {
     try {
       await createNotebook({ name })
-      ElMessage.success('笔记本创建成功')
+      ElMessage.success(t('messages.notebookCreated'))
       await fetchInitialData()
     } catch (err) {
       console.error('Failed to create notebook:', err)
-      ElMessage.error('创建失败')
+      ElMessage.error(t('messages.deleteFailed'))
       throw err
     }
   }
@@ -180,7 +183,7 @@ export function useNotes() {
   const handleDeleteNotebook = async (id) => {
     try {
       await deleteNotebook(id)
-      ElMessage.success('笔记本已删除')
+      ElMessage.success(t('messages.notebookDeleted'))
       if (currentView.value === id) {
         currentView.value = 'active'
       }
@@ -188,7 +191,7 @@ export function useNotes() {
       await fetchNotes()
     } catch (err) {
       console.error('Failed to delete notebook:', err)
-      ElMessage.error('删除失败')
+      ElMessage.error(t('messages.deleteFailed'))
     }
   }
 
@@ -196,11 +199,11 @@ export function useNotes() {
   const handleUpdateNotebook = async (id, name) => {
     try {
       await updateNotebook(id, { name })
-      ElMessage.success('笔记本已更新')
+      ElMessage.success(t('messages.notebookUpdated'))
       await fetchInitialData()
     } catch (err) {
       console.error('Failed to update notebook:', err)
-      ElMessage.error('更新失败')
+      ElMessage.error(t('messages.updateFailed'))
       throw err
     }
   }
@@ -209,11 +212,11 @@ export function useNotes() {
   const handleCreateTag = async (name, color) => {
     try {
       await createTag({ name, color })
-      ElMessage.success('标签创建成功')
+      ElMessage.success(t('messages.tagCreated'))
       await fetchInitialData()
     } catch (err) {
       console.error('Failed to create tag:', err)
-      ElMessage.error('创建失败')
+      ElMessage.error(t('messages.deleteFailed'))
       throw err
     }
   }
@@ -222,11 +225,11 @@ export function useNotes() {
   const handleDeleteTag = async (id) => {
     try {
       await deleteTag(id)
-      ElMessage.success('标签已删除')
+      ElMessage.success(t('messages.tagDeleted'))
       await fetchInitialData()
     } catch (err) {
       console.error('Failed to delete tag:', err)
-      ElMessage.error('删除失败')
+      ElMessage.error(t('messages.deleteFailed'))
     }
   }
 
@@ -234,12 +237,12 @@ export function useNotes() {
   const handleUpdateTag = async (id, name, color) => {
     try {
       await updateTag(id, { name, color })
-      ElMessage.success('标签已更新')
+      ElMessage.success(t('messages.tagUpdated'))
       await fetchInitialData()
       await fetchNotes()
     } catch (err) {
       console.error('Failed to update tag:', err)
-      ElMessage.error('更新失败')
+      ElMessage.error(t('messages.updateFailed'))
       throw err
     }
   }
@@ -274,9 +277,9 @@ export function useNotes() {
   // Batch delete notes permanently
   const handleBatchDelete = async (ids) => {
     try {
-      await ElMessageBox.confirm(`确定永久删除选中的 ${ids.length} 条笔记吗？删除后无法恢复！`, '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
+      await ElMessageBox.confirm(t('messages.batchDeleteConfirm', { count: ids.length }), t('common.hint'), {
+        confirmButtonText: t('common.confirm'),
+        cancelButtonText: t('common.cancel'),
         type: 'warning'
       })
     } catch {
@@ -284,12 +287,12 @@ export function useNotes() {
     }
     try {
       await batchDelete(ids)
-      ElMessage.success('已永久删除')
+      ElMessage.success(t('messages.permanentlyDeleted'))
       await Promise.all([fetchNotes(), fetchInitialData()])
       return true
     } catch (err) {
       console.error('Failed to batch delete:', err)
-      ElMessage.error('删除失败')
+      ElMessage.error(t('messages.deleteFailed'))
       return false
     }
   }
@@ -298,12 +301,12 @@ export function useNotes() {
   const handleBatchRestore = async (ids) => {
     try {
       await batchRestore(ids)
-      ElMessage.success(`已恢复 ${ids.length} 条笔记`)
+      ElMessage.success(t('messages.restored'))
       await Promise.all([fetchNotes(), fetchInitialData()])
       return true
     } catch (err) {
       console.error('Failed to batch restore:', err)
-      ElMessage.error('恢复失败')
+      ElMessage.error(t('messages.restoreFailed'))
       return false
     }
   }
@@ -311,23 +314,22 @@ export function useNotes() {
   // Empty trash - delete all notes in trash
   const handleEmptyTrash = async () => {
     try {
-      await ElMessageBox.confirm('确定清空回收站吗？所有笔记将被永久删除，无法恢复！', '清空回收站', {
-        confirmButtonText: '确定清空',
-        cancelButtonText: '取消',
+      await ElMessageBox.confirm(t('messages.emptyTrashConfirm'), t('messages.emptyTrashTitle'), {
+        confirmButtonText: t('messages.confirmEmpty'),
+        cancelButtonText: t('common.cancel'),
         type: 'warning'
       })
     } catch {
       return false
     }
     try {
-      const res = await emptyTrash()
-      const count = res.deleted_count || 0
-      ElMessage.success(`已清空回收站，删除 ${count} 条笔记`)
+      await emptyTrash()
+      ElMessage.success(t('messages.permanentlyDeleted'))
       await Promise.all([fetchNotes(), fetchInitialData()])
       return true
     } catch (err) {
       console.error('Failed to empty trash:', err)
-      ElMessage.error('清空失败')
+      ElMessage.error(t('messages.emptyTrashFailed'))
       return false
     }
   }

@@ -12,7 +12,15 @@ import 'vditor/dist/index.css'
 
 const router = useRouter()
 const route = useRoute()
-const { t } = useI18n()
+const { t, locale } = useI18n()
+
+// Get notebook display name (handle default notebook translation)
+const getNotebookDisplayName = (notebook) => {
+  if (notebook.is_default) {
+    return t('sidebar.uncategorized')
+  }
+  return notebook.name
+}
 
 // 判断是否为新建模式
 const isNewMode = computed(() => route.name === 'EditorNew' || route.path === '/editor/new')
@@ -87,7 +95,7 @@ const loadNote = async () => {
     isSaved.value = true // 编辑模式下已有笔记
   } catch (err) {
     console.error('Failed to load note:', err)
-    ElMessage.error('加载笔记失败')
+    ElMessage.error(t('editor.loadNoteFailed'))
     router.push('/')
   } finally {
     isLoading.value = false
@@ -111,7 +119,7 @@ const loadInitialData = async () => {
     formData.value.notebook_id = defaultNotebook.id
   } catch (err) {
     console.error('Failed to load initial data:', err)
-    ElMessage.error('加载数据失败')
+    ElMessage.error(t('editor.loadDataFailed'))
   } finally {
     isLoading.value = false
   }
@@ -140,7 +148,7 @@ const initVditor = async () => {
       upload: {
         accept: 'image/*',
         handler: () => {
-          ElMessage.warning('请使用图片链接插入图片')
+          ElMessage.warning(t('editor.useImageLink'))
           return null
         }
       },
@@ -209,11 +217,11 @@ const goBack = async () => {
   if (isNewMode.value && hasContent.value && !isSaved.value) {
     try {
       await ElMessageBox.confirm(
-        '笔记尚未保存，确定要放弃吗？',
-        '提示',
+        t('editor.unsavedConfirm'),
+        t('common.hint'),
         {
-          confirmButtonText: '放弃',
-          cancelButtonText: '继续编辑',
+          confirmButtonText: t('editor.discard'),
+          cancelButtonText: t('editor.continueEdit'),
           type: 'warning'
         }
       )
@@ -235,7 +243,7 @@ const handleSave = async () => {
 
   // 验证：标题和内容至少有一个
   if (!formData.value.title?.trim() && !formData.value.content?.trim()) {
-    ElMessage.warning('请输入标题或内容')
+    ElMessage.warning(t('editor.enterTitleOrContent'))
     return
   }
 
@@ -250,7 +258,7 @@ const handleSave = async () => {
 
       formData.value.id = newNote.id
       isSaved.value = true
-      ElMessage.success('创建成功')
+      ElMessage.success(t('editor.createSuccess'))
 
       // 替换URL为编辑模式（不产生历史记录）
       router.replace(`/editor/${newNote.id}`)
@@ -264,11 +272,11 @@ const handleSave = async () => {
         is_pinned: formData.value.is_pinned,
         tag_ids: formData.value.tags?.map(t => t.id) || []
       })
-      ElMessage.success('保存成功')
+      ElMessage.success(t('editor.saveSuccess'))
     }
   } catch (err) {
     console.error('Save failed:', err)
-    ElMessage.error('保存失败')
+    ElMessage.error(t('editor.saveFailed'))
   }
 }
 
@@ -301,7 +309,7 @@ const handleGenerateAI = async () => {
     })
   } catch (err) {
     console.error('Save failed before AI generation:', err)
-    ElMessage.error('保存失败，无法生成 AI 摘要')
+    ElMessage.error(t('editor.saveFailedAI'))
     return
   }
 
@@ -367,10 +375,10 @@ const removeTag = (tagId) => {
           <button
             @click="goBack"
             class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-lg border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 transition-all flex items-center gap-2"
-            title="返回"
+            :title="t('editor.back')"
           >
             <ArrowLeft class="w-5 h-5" />
-            <span>返回</span>
+            <span>{{ t('editor.back') }}</span>
           </button>
           <div class="flex gap-2">
             <button
@@ -396,7 +404,7 @@ const removeTag = (tagId) => {
           class="px-6 py-2 bg-green-500 text-white border-2 border-black rounded-xl font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 transition-all active:translate-y-0 active:shadow-none"
         >
           <Save class="w-4 h-4 inline mr-2" />
-          {{ isNewMode && !isSaved ? '创建笔记' : t('editor.saveChanges') }}
+          {{ isNewMode && !isSaved ? t('editor.createNote') : t('editor.saveChanges') }}
         </button>
       </div>
     </header>
@@ -412,7 +420,7 @@ const removeTag = (tagId) => {
             type="text"
             :disabled="isLoading"
             class="w-full bg-transparent text-4xl font-black text-slate-800 placeholder-slate-400 focus:outline-none disabled:opacity-50"
-            :placeholder="isLoading ? '加载中...' : t('editor.titlePlaceholder')"
+            :placeholder="isLoading ? t('common.loading') : t('editor.titlePlaceholder')"
           />
         </div>
 
@@ -421,7 +429,7 @@ const removeTag = (tagId) => {
           <div ref="editorContainer" class="vditor-wrapper"></div>
           <!-- Loading overlay -->
           <div v-if="isLoading" class="absolute inset-0 bg-white/80 flex items-center justify-center rounded-xl">
-            <div class="text-slate-400 font-bold">{{ isNewMode ? '准备中...' : '加载笔记内容...' }}</div>
+            <div class="text-slate-400 font-bold">{{ isNewMode ? t('editor.preparing') : t('editor.loadingNote') }}</div>
           </div>
         </div>
       </div>
@@ -484,10 +492,10 @@ const removeTag = (tagId) => {
         <!-- New Mode Hint -->
         <div v-if="isNewMode && !isSaved" class="bg-yellow-50 p-4 rounded-xl border-2 border-yellow-200 shadow-sm">
           <p class="text-sm text-yellow-800 font-bold">
-            📝 新建笔记模式
+            📝 {{ t('editor.newNoteMode') }}
           </p>
           <p class="text-xs text-yellow-600 mt-1">
-            输入内容后点击"创建笔记"保存
+            {{ t('editor.newNoteHint') }}
           </p>
         </div>
 
@@ -500,7 +508,7 @@ const removeTag = (tagId) => {
               class="w-full appearance-none bg-slate-50 border-2 border-slate-200 rounded-xl py-3 pl-4 pr-10 font-bold text-sm text-slate-700 focus:outline-none focus:border-black transition-colors"
             >
               <option v-for="nb in notebooks" :key="nb.id" :value="nb.id">
-                {{ nb.name }}
+                {{ getNotebookDisplayName(nb) }}
               </option>
             </select>
             <Book class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
