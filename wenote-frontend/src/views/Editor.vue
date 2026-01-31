@@ -3,10 +3,10 @@ import { ref, onMounted, computed, onBeforeUnmount, watch, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ArrowLeft, Pin, Star, Save, Sparkles, CheckCircle2, Book, Bot } from 'lucide-vue-next'
-import { getNote } from '../api/note'
-import { getNotebooks } from '../api/notebook'
+import { getNote, createNote, updateNote } from '../api/note'
+import { getNotebooks, getDefaultNotebook } from '../api/notebook'
 import { getTags } from '../api/tag'
-import { ElMessage, ElLoading } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import Vditor from 'vditor'
 import 'vditor/dist/index.css'
 
@@ -14,8 +14,13 @@ const router = useRouter()
 const route = useRoute()
 const { t } = useI18n()
 
+// 判断是否为新建模式
+const isNewMode = computed(() => route.name === 'EditorNew' || route.path === '/editor/new')
+
 // Loading state
 const isLoading = ref(true)
+const editorReady = ref(false)
+const isSaved = ref(false) // 标记是否已保存过
 
 // Note data
 const noteId = computed(() => route.params.id)
@@ -45,7 +50,14 @@ const showTagSelect = ref(false)
 const vditor = ref(null)
 const editorContainer = ref(null)
 
-// Load note data
+// 检查是否有内容
+const hasContent = computed(() => {
+  const title = formData.value.title?.trim() || ''
+  const content = formData.value.content?.trim() || ''
+  return title.length > 0 || content.length > 0
+})
+
+// Load note data (编辑模式)
 const loadNote = async () => {
   isLoading.value = true
   try {
@@ -72,6 +84,7 @@ const loadNote = async () => {
       suggested_tags: noteData.suggested_tags || [],
       ai_status: noteData.ai_status || 'pending'
     }
+    isSaved.value = true // 编辑模式下已有笔记
   } catch (err) {
     console.error('Failed to load note:', err)
     ElMessage.error('加载笔记失败')
@@ -81,16 +94,35 @@ const loadNote = async () => {
   }
 }
 
+// Load initial data (新建模式)
+const loadInitialData = async () => {
+  isLoading.value = true
+  try {
+    const [notebooksData, tagsData, defaultNotebook] = await Promise.all([
+      getNotebooks(),
+      getTags(),
+      getDefaultNotebook()
+    ])
+
+    notebooks.value = notebooksData.list || []
+    tags.value = tagsData.list || []
+
+    // 设置默认笔记本
+    formData.value.notebook_id = defaultNotebook.id
+  } catch (err) {
+    console.error('Failed to load initial data:', err)
+    ElMessage.error('加载数据失败')
+  } finally {
+    isLoading.value = false
+  }
+}
+
 // Initialize Vditor editor
 const initVditor = async () => {
-  await new Promise(resolve => setTimeout(resolve, 100))
-
   if (!editorContainer.value) {
     console.error('Editor container not found')
     return
   }
-
-  console.log('Initializing Vditor with content:', formData.value.content?.substring(0, 100) || '(empty)')
 
   try {
     vditor.value = new Vditor(editorContainer.value, {
@@ -114,11 +146,10 @@ const initVditor = async () => {
       },
       cache: { enable: false },
       after: () => {
-        console.log('✅ Vditor initialized successfully!')
+        editorReady.value = true
         const content = formData.value.content || ''
         if (vditor.value && vditor.value.setValue) {
           vditor.value.setValue(content)
-          console.log('Content set, length:', content.length)
         }
       },
       input: (value) => {
@@ -133,14 +164,28 @@ const initVditor = async () => {
 
 // Load note and init editor on mount
 onMounted(async () => {
-  await loadNote()
+  if (isNewMode.value) {
+    // 新建模式：只加载笔记本和标签
+    const dataPromise = loadInitialData()
+    await nextTick()
+    initVditor()
+    await dataPromise
+  } else {
+    // 编辑模式：加载笔记数据
+    const dataPromise = loadNote()
+    await nextTick()
+    initVditor()
+    await dataPromise
+    if (vditor.value && editorReady.value) {
+      vditor.value.setValue(formData.value.content || '')
+    }
+  }
 })
 
-// Watch for loading state change to init editor
-watch(isLoading, async (newVal) => {
-  if (!newVal && !vditor.value) {
-    await nextTick()
-    await initVditor()
+// Watch for data loaded - update editor content
+watch([isLoading, editorReady], ([loading, ready]) => {
+  if (!loading && ready && vditor.value && !isNewMode.value) {
+    vditor.value.setValue(formData.value.content || '')
   }
 })
 
@@ -158,9 +203,28 @@ const availableTags = computed(() => {
   return tags.value.filter(t => !currentTagIds.includes(t.id))
 })
 
-// Navigate back
-const goBack = () => {
-  router.push('/')
+// Navigate back with unsaved check
+const goBack = async () => {
+  // 新建模式下，如果有内容但未保存，提示用户
+  if (isNewMode.value && hasContent.value && !isSaved.value) {
+    try {
+      await ElMessageBox.confirm(
+        '笔记尚未保存，确定要放弃吗？',
+        '提示',
+        {
+          confirmButtonText: '放弃',
+          cancelButtonText: '继续编辑',
+          type: 'warning'
+        }
+      )
+      // 用户确认放弃，直接返回
+      router.push('/')
+    } catch {
+      // 用户取消，继续编辑
+    }
+  } else {
+    router.push('/')
+  }
 }
 
 // Save note
@@ -169,18 +233,39 @@ const handleSave = async () => {
     formData.value.content = vditor.value.getValue()
   }
 
+  // 验证：标题和内容至少有一个
+  if (!formData.value.title?.trim() && !formData.value.content?.trim()) {
+    ElMessage.warning('请输入标题或内容')
+    return
+  }
+
   try {
-    // Import updateNote function here
-    const { updateNote } = await import('../api/note')
-    await updateNote(formData.value.id, {
-      title: formData.value.title,
-      content: formData.value.content,
-      notebook_id: formData.value.notebook_id,
-      is_starred: formData.value.is_starred,
-      is_pinned: formData.value.is_pinned,
-      tag_ids: formData.value.tags?.map(t => t.id) || []
-    })
-    ElMessage.success('保存成功')
+    if (isNewMode.value && !isSaved.value) {
+      // 新建模式：创建笔记
+      const newNote = await createNote({
+        notebook_id: formData.value.notebook_id,
+        title: formData.value.title,
+        content: formData.value.content
+      })
+
+      formData.value.id = newNote.id
+      isSaved.value = true
+      ElMessage.success('创建成功')
+
+      // 替换URL为编辑模式（不产生历史记录）
+      router.replace(`/editor/${newNote.id}`)
+    } else {
+      // 编辑模式：更新笔记
+      await updateNote(formData.value.id, {
+        title: formData.value.title,
+        content: formData.value.content,
+        notebook_id: formData.value.notebook_id,
+        is_starred: formData.value.is_starred,
+        is_pinned: formData.value.is_pinned,
+        tag_ids: formData.value.tags?.map(t => t.id) || []
+      })
+      ElMessage.success('保存成功')
+    }
   } catch (err) {
     console.error('Save failed:', err)
     ElMessage.error('保存失败')
@@ -206,7 +291,6 @@ const handleGenerateAI = async () => {
 
   // Save note first before generating AI
   try {
-    const { updateNote } = await import('../api/note')
     await updateNote(formData.value.id, {
       title: formData.value.title,
       content: formData.value.content,
@@ -312,17 +396,13 @@ const removeTag = (tagId) => {
           class="px-6 py-2 bg-green-500 text-white border-2 border-black rounded-xl font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 transition-all active:translate-y-0 active:shadow-none"
         >
           <Save class="w-4 h-4 inline mr-2" />
-          {{ t('editor.saveChanges') }}
+          {{ isNewMode && !isSaved ? '创建笔记' : t('editor.saveChanges') }}
         </button>
       </div>
     </header>
 
     <!-- Content -->
-    <div v-if="isLoading" class="flex items-center justify-center min-h-[50vh]">
-      <div class="text-slate-400">加载中...</div>
-    </div>
-
-    <div v-else class="max-w-screen-2xl mx-auto px-6 py-8 flex gap-8">
+    <div class="max-w-screen-2xl mx-auto px-6 py-8 flex gap-8">
       <!-- Editor Area -->
       <div class="flex-1">
         <!-- Title -->
@@ -330,21 +410,26 @@ const removeTag = (tagId) => {
           <input
             v-model="formData.title"
             type="text"
-            class="w-full bg-transparent text-4xl font-black text-slate-800 placeholder-slate-400 focus:outline-none"
-            :placeholder="t('editor.titlePlaceholder')"
+            :disabled="isLoading"
+            class="w-full bg-transparent text-4xl font-black text-slate-800 placeholder-slate-400 focus:outline-none disabled:opacity-50"
+            :placeholder="isLoading ? '加载中...' : t('editor.titlePlaceholder')"
           />
         </div>
 
         <!-- Vditor -->
-        <div class="bg-white border-2 border-black rounded-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]" style="overflow: visible;">
+        <div class="bg-white border-2 border-black rounded-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] relative" style="overflow: visible;">
           <div ref="editorContainer" class="vditor-wrapper"></div>
+          <!-- Loading overlay -->
+          <div v-if="isLoading" class="absolute inset-0 bg-white/80 flex items-center justify-center rounded-xl">
+            <div class="text-slate-400 font-bold">{{ isNewMode ? '准备中...' : '加载笔记内容...' }}</div>
+          </div>
         </div>
       </div>
 
       <!-- Sidebar -->
       <div class="w-72 flex-shrink-0 space-y-4">
-        <!-- AI Panel -->
-        <div class="bg-white p-4 rounded-xl border-2 border-green-200 shadow-sm">
+        <!-- AI Panel (只在编辑模式显示) -->
+        <div v-if="!isNewMode || isSaved" class="bg-white p-4 rounded-xl border-2 border-green-200 shadow-sm">
           <div class="flex items-center justify-between mb-3">
             <div class="flex items-center gap-2">
               <Bot class="w-4 h-4 text-green-600" />
@@ -396,6 +481,16 @@ const removeTag = (tagId) => {
           </div>
         </div>
 
+        <!-- New Mode Hint -->
+        <div v-if="isNewMode && !isSaved" class="bg-yellow-50 p-4 rounded-xl border-2 border-yellow-200 shadow-sm">
+          <p class="text-sm text-yellow-800 font-bold">
+            📝 新建笔记模式
+          </p>
+          <p class="text-xs text-yellow-600 mt-1">
+            输入内容后点击"创建笔记"保存
+          </p>
+        </div>
+
         <!-- Notebook -->
         <div class="bg-white p-4 rounded-xl border-2 border-slate-200 shadow-sm">
           <label class="text-xs font-black text-slate-400 uppercase mb-2 block">{{ t('editor.notebook') }}</label>
@@ -412,8 +507,8 @@ const removeTag = (tagId) => {
           </div>
         </div>
 
-        <!-- Tags -->
-        <div class="bg-white p-4 rounded-xl border-2 border-slate-200 shadow-sm">
+        <!-- Tags (只在编辑模式显示) -->
+        <div v-if="!isNewMode || isSaved" class="bg-white p-4 rounded-xl border-2 border-slate-200 shadow-sm">
           <label class="text-xs font-black text-slate-400 uppercase mb-2 block">{{ t('editor.tags') }}</label>
           <div class="flex flex-wrap gap-2 p-3 bg-slate-50 border-2 border-slate-200 rounded-xl min-h-[80px] content-start">
             <span

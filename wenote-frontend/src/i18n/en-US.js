@@ -16,12 +16,13 @@ export default {
     searchNotes: 'Search notes...',
     searchTrash: 'Search trash...',
     noteCount: '{count} notes',
-    emptyTrash: 'Trash is empty',
+    emptyTrashHint: 'Trash is empty',
     emptyNotes: 'No notes yet...',
     selectAll: 'Select All',
     selected: '{count} selected',
     batchRestore: 'Restore',
     batchDelete: 'Delete',
+    emptyTrash: 'Empty Trash',
     newNote: 'New Note'
   },
   sidebar: {

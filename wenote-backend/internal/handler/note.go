@@ -328,6 +328,32 @@ func (h *NoteHandler) BatchRestore(c *gin.Context) {
 	})
 }
 
+// EmptyTrash 清空回收站
+func (h *NoteHandler) EmptyTrash(c *gin.Context) {
+	userID := c.GetUint64("userID")
+
+	count, err := h.noteService.EmptyTrash(userID)
+	if err != nil {
+		response.InternalError(c, "清空回收站失败")
+		return
+	}
+
+	// 记录审计日志
+	_ = h.auditRepo.Create(&model.AuditLog{
+		UserID:       userID,
+		Action:       "empty_trash",
+		ResourceType: "note",
+		Details: map[string]interface{}{
+			"deleted_count": count,
+		},
+		IPAddress: c.ClientIP(),
+	})
+
+	response.SuccessWithMessage(c, "回收站已清空", map[string]interface{}{
+		"deleted_count": count,
+	})
+}
+
 // BatchMove 批量移动笔记
 func (h *NoteHandler) BatchMove(c *gin.Context) {
 	userID := c.GetUint64("userID")

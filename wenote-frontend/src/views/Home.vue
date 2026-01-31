@@ -98,7 +98,6 @@ const {
   searchQuery,
   fetchInitialData,
   fetchNotes,
-  handleCreateNote,
   handleUpdateNote,
   handleDeleteNote,
   handleRestoreNote,
@@ -111,10 +110,16 @@ const {
   handleDeleteTag,
   handleBatchDelete,
   handleBatchRestore,
+  handleEmptyTrash,
   filterTagId,
   setFilterTag,
   setView,
-  setSearch
+  setSearch,
+  // Pagination
+  page,
+  pageSize,
+  total,
+  setPage
 } = useNotes()
 
 // 批量选择
@@ -161,25 +166,20 @@ const viewTitle = computed(() => {
   return '📝 Notes'
 })
 
-// Create new note with confetti
-const createNote = async () => {
+// Create new note - 直接跳转到新建页面，不预先创建笔记
+const createNote = () => {
   playSound('start')
-  try {
-    const newNote = await handleCreateNote()
-    // Trigger confetti
-    if (isGameMode.value) {
-      confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { y: 0.6 },
-        colors: ['#22c55e', '#eab308', '#ec4899']
-      })
-    }
-    // Navigate to editor
-    router.push(`/editor/${newNote.id}`)
-  } catch (err) {
-    // Error handled in composable
+  // Trigger confetti
+  if (isGameMode.value) {
+    confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { y: 0.6 },
+      colors: ['#22c55e', '#eab308', '#ec4899']
+    })
   }
+  // Navigate to new editor page
+  router.push('/editor/new')
 }
 
 // Search handler with debounce
@@ -401,6 +401,14 @@ onUnmounted(() => {
               {{ t('home.batchDelete') }}
             </button>
           </template>
+          <button
+            v-if="selectedIds.length === 0"
+            @click="handleEmptyTrash"
+            class="ml-auto flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg font-bold hover:bg-red-600 transition-colors"
+          >
+            <Trash2 class="w-4 h-4" />
+            {{ t('home.emptyTrash') }}
+          </button>
         </div>
 
         <!-- Notes Grid -->
@@ -426,8 +434,20 @@ onUnmounted(() => {
             class="col-span-full text-center py-20 text-slate-400 font-bold text-xl opacity-50 flex flex-col items-center"
           >
             <FolderOpen class="w-16 h-16 mb-4 text-slate-300" />
-            {{ currentView === 'trash' ? t('home.emptyTrash') : t('home.emptyNotes') }}
+            {{ currentView === 'trash' ? t('home.emptyTrashHint') : t('home.emptyNotes') }}
           </div>
+        </div>
+
+        <!-- Pagination -->
+        <div v-if="total > pageSize" class="flex justify-center mt-6 pb-6">
+          <el-pagination
+            :current-page="page"
+            :page-size="pageSize"
+            :total="total"
+            layout="prev, pager, next"
+            @current-change="setPage"
+            background
+          />
         </div>
       </div>
     </main>

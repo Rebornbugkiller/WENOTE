@@ -385,6 +385,11 @@ func (s *NoteService) BatchRestore(noteIDs []uint64, userID uint64) (int64, erro
 	return s.noteRepo.BatchRestore(validNoteIDs)
 }
 
+// EmptyTrash 清空回收站
+func (s *NoteService) EmptyTrash(userID uint64) (int64, error) {
+	return s.noteRepo.EmptyTrash(userID)
+}
+
 // BatchMove 批量移动笔记到指定笔记本
 func (s *NoteService) BatchMove(noteIDs []uint64, notebookID, userID uint64) (int64, error) {
 	// 验证笔记本是否存在且属于该用户

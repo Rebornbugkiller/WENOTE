@@ -290,6 +290,12 @@ func (r *NoteRepo) BatchHardDelete(noteIDs []uint64) (int64, error) {
 	return result.RowsAffected, result.Error
 }
 
+// EmptyTrash 清空用户回收站（永久删除所有已删除笔记）
+func (r *NoteRepo) EmptyTrash(userID uint64) (int64, error) {
+	result := DB.Unscoped().Where("user_id = ? AND deleted_at IS NOT NULL", userID).Delete(&model.Note{})
+	return result.RowsAffected, result.Error
+}
+
 // BatchUpdateNotebook 批量移动到笔记本
 func (r *NoteRepo) BatchUpdateNotebook(noteIDs []uint64, notebookID uint64) (int64, error) {
 	result := DB.Model(&model.Note{}).

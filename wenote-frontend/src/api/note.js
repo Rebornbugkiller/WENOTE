@@ -13,6 +13,7 @@ export const generateSummaryAndTags = (id) => api.post(`/notes/${id}/ai/generate
 export const batchDelete = (noteIds) => api.post('/notes/batch/delete', { note_ids: noteIds })
 export const batchRestore = (noteIds) => api.post('/notes/batch/restore', { note_ids: noteIds })
 export const batchMove = (noteIds, notebookId) => api.post('/notes/batch/move', { note_ids: noteIds, notebook_id: notebookId })
+export const emptyTrash = () => api.delete('/notes/trash')
 
 // 附件相关
 export const uploadImage = (noteId, file) => {

@@ -1,6 +1,6 @@
 import { ref, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getNotes, getTrashNotes, createNote, updateNote, deleteNote, restoreNote, batchDelete, batchRestore } from '../api/note'
+import { getNotes, getTrashNotes, createNote, updateNote, deleteNote, restoreNote, batchDelete, batchRestore, emptyTrash } from '../api/note'
 import { getNotebooks, getDefaultNotebook, createNotebook, updateNotebook, deleteNotebook } from '../api/notebook'
 import { getTags, createTag, updateTag, deleteTag } from '../api/tag'
 
@@ -67,7 +67,7 @@ export function useNotes() {
     }
   }
 
-  // Create a new note
+  // Create a new note (优化：不等待刷新列表)
   const handleCreateNote = async (notebookId) => {
     try {
       // 如果没有指定笔记本，使用默认笔记本
@@ -82,7 +82,8 @@ export function useNotes() {
         title: '',
         content: ''
       })
-      await Promise.all([fetchNotes(), fetchInitialData()])
+      // 后台刷新列表，不阻塞返回
+      Promise.all([fetchNotes(), fetchInitialData()])
       return data
     } catch (err) {
       console.error('Failed to create note:', err)
@@ -264,6 +265,12 @@ export function useNotes() {
     fetchNotes()
   }
 
+  // Set page for pagination
+  const setPage = (newPage) => {
+    page.value = newPage
+    fetchNotes()
+  }
+
   // Batch delete notes permanently
   const handleBatchDelete = async (ids) => {
     try {
@@ -301,6 +308,30 @@ export function useNotes() {
     }
   }
 
+  // Empty trash - delete all notes in trash
+  const handleEmptyTrash = async () => {
+    try {
+      await ElMessageBox.confirm('确定清空回收站吗？所有笔记将被永久删除，无法恢复！', '清空回收站', {
+        confirmButtonText: '确定清空',
+        cancelButtonText: '取消',
+        type: 'warning'
+      })
+    } catch {
+      return false
+    }
+    try {
+      const res = await emptyTrash()
+      const count = res.deleted_count || 0
+      ElMessage.success(`已清空回收站，删除 ${count} 条笔记`)
+      await Promise.all([fetchNotes(), fetchInitialData()])
+      return true
+    } catch (err) {
+      console.error('Failed to empty trash:', err)
+      ElMessage.error('清空失败')
+      return false
+    }
+  }
+
   return {
     // State
     notes,
@@ -310,6 +341,10 @@ export function useNotes() {
     currentView,
     filterTagId,
     searchQuery,
+    // Pagination
+    page,
+    pageSize,
+    total,
 
     // Methods
     fetchInitialData,
@@ -327,8 +362,10 @@ export function useNotes() {
     handleDeleteTag,
     handleBatchDelete,
     handleBatchRestore,
+    handleEmptyTrash,
     setView,
     setSearch,
-    setFilterTag
+    setFilterTag,
+    setPage
   }
 }

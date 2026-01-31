@@ -16,12 +16,13 @@ export default {
     searchNotes: '搜索笔记...',
     searchTrash: '搜索回收站...',
     noteCount: '共 {count} 条笔记',
-    emptyTrash: '回收站是空的',
+    emptyTrashHint: '回收站是空的',
     emptyNotes: '暂无笔记...',
     selectAll: '全选',
     selected: '已选 {count} 项',
     batchRestore: '批量恢复',
     batchDelete: '批量删除',
+    emptyTrash: '清空回收站',
     newNote: '新建笔记'
   },
   sidebar: {

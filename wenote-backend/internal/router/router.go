@@ -77,6 +77,7 @@ func SetupRouter() *gin.Engine {
 				notes.POST("/batch/delete", noteHandler.BatchDelete)
 				notes.POST("/batch/restore", noteHandler.BatchRestore)
 				notes.POST("/batch/move", noteHandler.BatchMove)
+				notes.DELETE("/trash", noteHandler.EmptyTrash)
 				// 附件相关路由
 				notes.POST("/:id/attachments", handler.NewAttachmentHandler().UploadImage)
 				notes.GET("/:id/attachments", handler.NewAttachmentHandler().GetAttachments)
