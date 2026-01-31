@@ -24,7 +24,7 @@ func NewAttachmentHandler() *AttachmentHandler {
 // POST /api/v1/notes/:id/attachments
 func (h *AttachmentHandler) UploadImage(c *gin.Context) {
 	// 获取用户ID
-	userID, _ := c.Get("user_id")
+	userID, _ := c.Get("userID")
 
 	// 获取笔记ID
 	noteIDStr := c.Param("id")
@@ -55,7 +55,7 @@ func (h *AttachmentHandler) UploadImage(c *gin.Context) {
 // GET /api/v1/notes/:id/attachments
 func (h *AttachmentHandler) GetAttachments(c *gin.Context) {
 	// 获取用户ID
-	userID, _ := c.Get("user_id")
+	userID, _ := c.Get("userID")
 
 	// 获取笔记ID
 	noteIDStr := c.Param("id")
@@ -79,7 +79,7 @@ func (h *AttachmentHandler) GetAttachments(c *gin.Context) {
 // DELETE /api/v1/attachments/:id
 func (h *AttachmentHandler) DeleteAttachment(c *gin.Context) {
 	// 获取用户ID
-	userID, _ := c.Get("user_id")
+	userID, _ := c.Get("userID")
 
 	// 获取附件ID
 	attachmentIDStr := c.Param("id")
