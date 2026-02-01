@@ -60,3 +60,16 @@ func (h *AuthHandler) Login(c *gin.Context) {
 
 	response.SuccessWithMessage(c, "登录成功", resp)
 }
+
+func (h *AuthHandler) RefreshToken(c *gin.Context) {
+	userID := c.GetUint64("userID")
+	username := c.GetString("username")
+
+	token, err := h.authService.RefreshToken(userID, username)
+	if err != nil {
+		response.InternalError(c, "刷新令牌失败")
+		return
+	}
+
+	response.Success(c, gin.H{"token": token})
+}

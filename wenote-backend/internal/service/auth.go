@@ -116,3 +116,7 @@ func (s *AuthService) recordLoginFailure(username string) {
 		logger.Warn("账号已锁定", "username", username, "locked_until", att.LockedUntil)
 	}
 }
+
+func (s *AuthService) RefreshToken(userID uint64, username string) (string, error) {
+	return s.jwtManager.GenerateToken(userID, username)
+}

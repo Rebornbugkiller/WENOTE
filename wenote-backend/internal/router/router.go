@@ -40,6 +40,8 @@ func SetupRouter() *gin.Engine {
 		authorized := v1.Group("")
 		authorized.Use(middleware.JWTAuth())
 		{
+			// 令牌刷新（需要认证）
+			authorized.POST("/auth/refresh", authHandler.RefreshToken)
 			userHandler := handler.NewUserHandler()
 			users := authorized.Group("/users")
 			{
