@@ -28,7 +28,7 @@ const toggleLocale = () => {
 
 // Game Mode State
 const isGameMode = ref(true)
-const isPlayingMusic = ref(true)
+const isPlayingMusic = ref(AudioEngine.getUserMusicPreference())
 
 // Stats Panel State
 const showStats = ref(false)
@@ -81,11 +81,14 @@ const playSound = (type) => {
   }
 }
 
+let musicToggling = false
 const toggleMusic = () => {
-  if (isGameMode.value) {
-    const playing = AudioEngine.toggleBGM()
-    isPlayingMusic.value = playing
-  }
+  if (!isGameMode.value || musicToggling) return
+  musicToggling = true
+  const playing = AudioEngine.toggleBGM()
+  isPlayingMusic.value = playing
+  AudioEngine.setUserMusicPreference(playing)
+  setTimeout(() => { musicToggling = false }, 300)
 }
 
 // Use notes composable

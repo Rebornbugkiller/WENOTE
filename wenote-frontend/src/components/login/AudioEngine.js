@@ -163,16 +163,13 @@ export const AudioEngine = {
       this.bgmAudio.loop = true
       this.bgmAudio.volume = 0.3
     }
+    this.isPlaying = true
     const playPromise = this.bgmAudio.play()
     if (playPromise !== undefined) {
-      playPromise.then(() => {
-        this.isPlaying = true
-      }).catch((error) => {
+      playPromise.catch((error) => {
         console.log('BGM autoplay was prevented:', error)
         this.isPlaying = false
       })
-    } else {
-      this.isPlaying = true
     }
   },
 
@@ -181,5 +178,14 @@ export const AudioEngine = {
       this.bgmAudio.pause()
     }
     this.isPlaying = false
+  },
+
+  getUserMusicPreference() {
+    const pref = localStorage.getItem('wenote_music_enabled')
+    return pref === null ? true : pref === 'true'
+  },
+
+  setUserMusicPreference(enabled) {
+    localStorage.setItem('wenote_music_enabled', enabled.toString())
   }
 }

@@ -269,7 +269,7 @@ const showPassword = ref(false)
 const showConfirmPassword = ref(false)
 const isLoading = ref(false)
 const showSettlement = ref(false)
-const isPlayingMusic = ref(true)
+const isPlayingMusic = ref(AudioEngine.getUserMusicPreference())
 const avatarMessage = ref(t('login.insertCoinBubble'))
 
 const form = reactive({
@@ -316,9 +316,14 @@ const handleInput = () => {
 const playSFX = (type) => AudioEngine.playSFX(type)
 
 // 音乐控制
+let musicToggling = false
 const toggleMusic = () => {
+  if (musicToggling) return
+  musicToggling = true
   const playing = AudioEngine.toggleBGM()
   isPlayingMusic.value = playing
+  AudioEngine.setUserMusicPreference(playing)
+  setTimeout(() => { musicToggling = false }, 300)
 }
 
 // 模式切换
@@ -347,7 +352,58 @@ const toggleFeverMode = () => {
 // 头像点击
 const handleAvatarClick = () => {
   AudioEngine.playSFX('hover')
-  const messages = [t('login.justAPixel'), t('login.keepTyping'), t('login.youGotThis'), t('login.wenote')]
+  const messages = [
+    t('login.justAPixel'),
+    t('login.keepTyping'),
+    t('login.youGotThis'),
+    t('login.wenote'),
+    t('login.snakeMsg1'),
+    t('login.snakeMsg2'),
+    t('login.snakeMsg3'),
+    t('login.snakeMsg4'),
+    t('login.snakeMsg5'),
+    t('login.snakeMsg6'),
+    t('login.snakeMsg7'),
+    t('login.snakeMsg8'),
+    t('login.snakeMsg9'),
+    t('login.snakeMsg10'),
+    t('login.snakeMsg11'),
+    t('login.snakeMsg12'),
+    t('login.snakeMsg13'),
+    t('login.snakeMsg14'),
+    t('login.snakeMsg15'),
+    t('login.snakeMsg16'),
+    t('login.snakeMsg17'),
+    t('login.snakeMsg18'),
+    t('login.snakeMsg19'),
+    t('login.snakeMsg20'),
+    t('login.snakeMsg21'),
+    t('login.snakeMsg22'),
+    t('login.snakeMsg23'),
+    t('login.snakeMsg24'),
+    t('login.snakeMsg25'),
+    t('login.snakeMsg26'),
+    t('login.snakeMsg27'),
+    t('login.snakeMsg28'),
+    t('login.snakeMsg29'),
+    t('login.snakeMsg30'),
+    t('login.snakeMsg31'),
+    t('login.snakeMsg32'),
+    t('login.snakeMsg33'),
+    t('login.snakeMsg34'),
+    t('login.snakeMsg35'),
+    t('login.snakeMsg36'),
+    t('login.snakeMsg37'),
+    t('login.snakeMsg38'),
+    t('login.snakeMsg39'),
+    t('login.snakeMsg40'),
+    t('login.snakeMsg41'),
+    t('login.snakeMsg42'),
+    t('login.snakeMsg43'),
+    t('login.snakeMsg44'),
+    t('login.snakeMsg45'),
+    t('login.snakeMsg46')
+  ]
   avatarMessage.value = messages[Math.floor(Math.random() * messages.length)]
 }
 
@@ -385,6 +441,9 @@ const handleSubmit = async () => {
       const data = await login({ username: form.username, password: form.password })
       userStore.setToken(data.token)
       userStore.setUser(data.user)
+      // 保存凭据
+      localStorage.setItem('wenote_saved_username', form.username)
+      localStorage.setItem('wenote_saved_password', form.password)
       // 等待进度条动画完成（0.8 秒）
       const elapsed = Date.now() - startTime
       if (elapsed < 800) await new Promise(r => setTimeout(r, 800 - elapsed))
@@ -430,6 +489,12 @@ onUnmounted(() => {
 
 // Auto-play BGM on first user interaction
 onMounted(() => {
+  // 读取保存的凭据
+  const savedUsername = localStorage.getItem('wenote_saved_username')
+  const savedPassword = localStorage.getItem('wenote_saved_password')
+  if (savedUsername) form.username = savedUsername
+  if (savedPassword) form.password = savedPassword
+
   window.addEventListener('click', () => {
     AudioEngine.init()
     if (isPlayingMusic.value && !AudioEngine.isPlaying) {
