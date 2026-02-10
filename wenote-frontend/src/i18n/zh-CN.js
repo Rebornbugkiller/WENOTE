@@ -218,7 +218,19 @@ export default {
     welcome: '欢迎来到 WENOTE 服务器',
     highScore: '最高分: 99999',
     collectNotes: '收集所有笔记!',
-    poweredBy: '由 WENOTE TECH 提供支持'
+    poweredBy: '由 WENOTE TECH 提供支持',
+    insertCoin: '投币继续',
+    levelUp: '笔记升级!',
+    readyPlayer: '玩家一就绪',
+    combo: '连击 x999',
+    achievement: '成就解锁: 首次登录',
+    pressStart: '按下开始键',
+    playerReady: '玩家1准备就绪',
+    loadingCreativity: '加载创造力... 100%',
+    savePoint: '已到达存档点',
+    newQuest: '新任务可用',
+    bonusStage: '奖励关卡已激活',
+    ggwp: 'GG WP'
   },
   leaderboard: {
     title: '排行榜',

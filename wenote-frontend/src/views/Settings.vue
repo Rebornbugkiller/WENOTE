@@ -52,14 +52,14 @@ const handleAccountDeleted = () => {
     </div>
 
     <!-- Header -->
-    <header class="sticky top-0 z-20 p-6 bg-green-50/80 backdrop-blur-sm border-b-4 border-black">
+    <header class="sticky top-0 z-20 p-4 md:p-6 bg-green-50/80 backdrop-blur-sm border-b-4 border-black">
       <div class="max-w-4xl mx-auto flex items-center justify-between">
-        <div class="flex items-center gap-4">
+        <div class="flex items-center gap-2 md:gap-4">
           <button @click="goBack"
-                  class="p-2 bg-white border-4 border-black rounded-xl hover:bg-slate-100 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-1 transition-all active:translate-y-1 active:shadow-none">
-            <ArrowLeft class="w-6 h-6" />
+                  class="p-2 bg-white border-4 border-black rounded-xl hover:bg-slate-100 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] md:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-1 transition-all active:translate-y-1 active:shadow-none">
+            <ArrowLeft class="w-5 h-5 md:w-6 md:h-6" />
           </button>
-          <h1 class="text-3xl font-black text-slate-800">
+          <h1 class="text-2xl md:text-3xl font-black text-slate-800">
             {{ t('settings.title') }}
           </h1>
         </div>
@@ -74,7 +74,7 @@ const handleAccountDeleted = () => {
     </header>
 
     <!-- Main Content -->
-    <main class="max-w-4xl mx-auto p-6 space-y-8 relative z-10 pb-20">
+    <main class="max-w-4xl mx-auto p-4 md:p-6 space-y-6 md:space-y-8 relative z-10 pb-20">
       <!-- Profile Section -->
       <ProfileSection @update="handleProfileUpdate" />
 

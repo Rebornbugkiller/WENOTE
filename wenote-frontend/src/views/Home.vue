@@ -153,8 +153,8 @@ const doBatchRestore = async () => {
 // 切换视图时清空选择
 watch(currentView, () => { selectedIds.value = [] })
 
-// UI State
-const sidebarOpen = ref(true)
+// UI State - 移动端默认关闭侧边栏
+const sidebarOpen = ref(typeof window !== 'undefined' && window.innerWidth >= 768)
 const searchInput = ref('')
 
 // View title
@@ -273,65 +273,66 @@ onUnmounted(() => {
       @update-tag="handleUpdateTag"
       @delete-tag="handleDeleteTag"
       @filter-by-tag="(id) => { setFilterTag(id); showStats = false }"
+      @toggle-sidebar="sidebarOpen = false"
     />
 
     <!-- Main Content -->
     <main class="flex-1 h-screen overflow-y-auto relative z-10">
       <!-- Header -->
-      <header class="sticky top-0 z-20 p-6 flex items-center justify-between bg-green-50/80 backdrop-blur-sm">
-        <div class="flex items-center gap-4 w-full max-w-2xl">
+      <header class="sticky top-0 z-20 p-4 md:p-6 flex items-center justify-between bg-green-50/80 backdrop-blur-sm">
+        <div class="flex items-center gap-2 md:gap-4 flex-1 min-w-0">
           <!-- Mobile menu toggle -->
           <button
             @click="sidebarOpen = !sidebarOpen; playSound('click')"
-            class="md:hidden p-2 bg-white border-2 border-black rounded-lg active:translate-y-1 transition-transform"
+            class="md:hidden p-2 bg-white border-2 border-black rounded-lg active:translate-y-1 transition-transform flex-shrink-0"
           >
             <X v-if="sidebarOpen" />
             <Menu v-else />
           </button>
 
           <!-- Search -->
-          <div class="relative w-full group">
+          <div class="relative flex-1 min-w-0 group">
             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <Search class="h-5 w-5 text-slate-400 group-focus-within:text-green-500 transition-colors" />
             </div>
             <input
               v-model="searchInput"
               type="text"
-              class="block w-full pl-10 pr-3 py-3 border-4 border-transparent focus:border-black rounded-xl leading-5 bg-white shadow-sm placeholder-slate-400 focus:outline-none font-bold text-lg transition-all"
+              class="block w-full pl-10 pr-3 py-2.5 md:py-3 border-2 md:border-4 border-transparent focus:border-black rounded-xl leading-5 bg-white shadow-sm placeholder-slate-400 focus:outline-none font-bold text-base md:text-lg transition-all"
               :class="{ 'focus:shadow-[4px_4px_0px_0px_rgba(34,197,94,1)]': isGameMode }"
               :placeholder="currentView === 'trash' ? t('home.searchTrash') : t('home.searchNotes')"
               @input="handleSearch"
               @keyup.enter="handleSearch"
               @focus="playSound('hover')"
             />
-            <div class="absolute right-3 top-3 px-2 py-0.5 bg-slate-100 rounded text-xs font-bold text-slate-400 border border-slate-300">
+            <div class="hidden md:block absolute right-3 top-1/2 -translate-y-1/2 px-2 py-0.5 bg-slate-100 rounded text-xs font-bold text-slate-400 border border-slate-300">
               CTRL+K
             </div>
           </div>
         </div>
 
-        <div class="flex items-center gap-4">
-          <!-- Language Toggle -->
+        <div class="flex items-center gap-1 md:gap-4">
+          <!-- Language Toggle - 移动端只显示图标 -->
           <button
             @click="toggleLocale"
-            class="px-3 py-2 flex items-center gap-2 bg-white border-2 border-black rounded-xl font-bold text-sm hover:bg-slate-100 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 transition-all"
+            class="p-2 md:px-3 md:py-2 flex items-center gap-1 md:gap-2 bg-white border-2 border-black rounded-xl font-bold text-xs md:text-sm hover:bg-slate-100 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 transition-all"
           >
             <Globe class="w-4 h-4" />
-            {{ locale === 'zh-CN' ? 'EN' : '中文' }}
+            <span class="hidden md:inline">{{ locale === 'zh-CN' ? 'EN' : '中文' }}</span>
           </button>
 
-           <!-- Game Mode Toggle -->
+           <!-- Game Mode Toggle - 移动端隐藏 -->
            <button
             @click="isGameMode = !isGameMode; playSound('switch')"
-            class="p-2 rounded-xl border-2 border-black transition-all hover:scale-105 active:scale-95"
+            class="hidden md:block p-2 rounded-xl border-2 border-black transition-all hover:scale-105 active:scale-95"
             :class="isGameMode ? 'bg-green-500 text-white shadow-[2px_2px_0px_0px_#000]' : 'bg-white text-slate-400'"
             title="Toggle Game Mode"
           >
-            <Gamepad2 class="w-6 h-6" />
+            <Gamepad2 class="w-5 h-5 md:w-6 md:h-6" />
           </button>
 
-          <!-- Music Widget (Only in Game Mode) -->
-          <div v-if="isGameMode" class="relative">
+          <!-- Music Widget (Only in Game Mode) - 移动端隐藏 -->
+          <div v-if="isGameMode" class="relative hidden md:block">
              <button
               @click="toggleMusic"
               class="p-2 rounded-xl border-2 border-black bg-black text-white hover:bg-slate-800 transition-all active:translate-y-1"
@@ -342,41 +343,41 @@ onUnmounted(() => {
             </button>
           </div>
 
-          <!-- Stats -->
+          <!-- Stats - 移动端只显示图标 -->
           <button
             @click="showStats = !showStats; playSound('click')"
-            class="px-4 py-2 flex items-center gap-2 bg-white border-2 border-black rounded-xl font-bold text-slate-600 hover:bg-blue-500 hover:text-white hover:border-blue-500 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[3px] hover:translate-y-[3px] transition-all"
+            class="p-2 md:px-4 md:py-2 flex items-center gap-1 md:gap-2 bg-white border-2 border-black rounded-xl font-bold text-slate-600 hover:bg-blue-500 hover:text-white hover:border-blue-500 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] md:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] md:hover:translate-x-[3px] md:hover:translate-y-[3px] transition-all text-xs md:text-base"
             @mouseenter="playSound('hover')"
           >
             <BarChart3 class="w-4 h-4" />
-            {{ t('stats.title') }}
+            <span class="hidden md:inline">{{ t('stats.title') }}</span>
           </button>
 
-          <!-- Logout -->
+          <!-- Logout - 移动端只显示图标 -->
           <button
             @click="handleLogout"
-            class="px-4 py-2 flex items-center gap-2 bg-white border-2 border-black rounded-xl font-bold text-slate-600 hover:bg-red-500 hover:text-white hover:border-red-500 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[3px] hover:translate-y-[3px] transition-all"
+            class="p-2 md:px-4 md:py-2 flex items-center gap-1 md:gap-2 bg-white border-2 border-black rounded-xl font-bold text-slate-600 hover:bg-red-500 hover:text-white hover:border-red-500 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] md:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px] md:hover:translate-x-[3px] md:hover:translate-y-[3px] transition-all text-xs md:text-base"
             @mouseenter="playSound('hover')"
           >
             <LogOut class="w-4 h-4" />
-            {{ t('common.logout') }}
+            <span class="hidden md:inline">{{ t('common.logout') }}</span>
           </button>
         </div>
       </header>
 
       <!-- Content -->
-      <div class="p-6 pt-0 max-w-7xl mx-auto">
+      <div class="p-4 md:p-6 pt-0 max-w-7xl mx-auto">
         <!-- Stats Dashboard -->
         <div v-if="showStats" class="mb-6">
           <StatsDashboard />
         </div>
         <!-- Title & New Note Button -->
-        <div v-if="!showStats" class="flex justify-between items-end mb-8">
+        <div v-if="!showStats" class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 mb-6 md:mb-8">
           <div>
-            <h2 class="text-4xl font-black text-slate-800 mb-1">
+            <h2 class="text-2xl md:text-4xl font-black text-slate-800 mb-1">
               {{ viewTitle }}
             </h2>
-            <p class="text-slate-500 font-bold ml-1">
+            <p class="text-slate-500 font-bold ml-1 text-sm md:text-base">
               {{ isLoading ? t('common.loading') : t('home.noteCount', { count: notes.length }) }}
             </p>
           </div>
@@ -384,9 +385,9 @@ onUnmounted(() => {
           <button
             v-if="currentView !== 'trash'"
             @click="createNote"
-            class="flex items-center gap-2 px-6 py-4 bg-black text-white rounded-2xl font-black text-lg shadow-[6px_6px_0px_0px_rgba(34,197,94,1)] hover:shadow-[8px_8px_0px_0px_rgba(34,197,94,1)] hover:-translate-y-1 transition-all border-2 border-transparent active:shadow-none active:translate-y-1"
+            class="flex items-center gap-2 px-4 md:px-6 py-3 md:py-4 bg-black text-white rounded-xl md:rounded-2xl font-black text-base md:text-lg shadow-[4px_4px_0px_0px_rgba(34,197,94,1)] md:shadow-[6px_6px_0px_0px_rgba(34,197,94,1)] hover:shadow-[6px_6px_0px_0px_rgba(34,197,94,1)] md:hover:shadow-[8px_8px_0px_0px_rgba(34,197,94,1)] hover:-translate-y-1 transition-all border-2 border-transparent active:shadow-none active:translate-y-1 w-full md:w-auto justify-center md:justify-start"
           >
-            <Plus class="w-6 h-6" />
+            <Plus class="w-5 h-5 md:w-6 md:h-6" />
             <span>{{ t('home.newNote') }}</span>
           </button>
         </div>
@@ -451,7 +452,7 @@ onUnmounted(() => {
         </div>
 
         <!-- Pagination -->
-        <div v-if="total > pageSize" class="flex justify-center mt-6 pb-6">
+        <div v-if="!showStats && total > pageSize" class="flex justify-center mt-6 pb-6">
           <el-pagination
             :current-page="page"
             :page-size="pageSize"

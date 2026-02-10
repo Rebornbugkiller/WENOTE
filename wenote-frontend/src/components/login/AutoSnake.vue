@@ -8,10 +8,9 @@
           <div class="snake-container">
             <div class="snake-grid"></div>
             <div
-              v-for="(part, i) in snake"
+              v-for="(part, i) in [...snake].reverse()"
               :key="i"
               class="snake-part"
-              :class="{ 'snake-head': i === 0 }"
               :style="getPartStyle(part)"
             ></div>
             <div class="snake-food" :style="getFoodStyle()"></div>
@@ -263,12 +262,7 @@ onUnmounted(() => {
 .snake-part {
   position: absolute;
   background: #0f380f;
-  border-radius: 1px;
-}
-
-.snake-head {
-  background: #0f380f;
-  z-index: 10;
+  border-radius: 0;
 }
 
 .snake-food {

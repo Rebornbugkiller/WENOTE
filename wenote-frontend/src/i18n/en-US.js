@@ -218,7 +218,19 @@ export default {
     welcome: 'WELCOME TO WENOTE SERVER',
     highScore: 'NEW HIGH SCORE: 99999',
     collectNotes: 'COLLECT ALL NOTES!',
-    poweredBy: 'POWERED BY WENOTE TECH'
+    poweredBy: 'POWERED BY WENOTE TECH',
+    insertCoin: 'INSERT COIN TO CONTINUE',
+    levelUp: 'LEVEL UP YOUR NOTES',
+    readyPlayer: 'READY PLAYER ONE',
+    combo: 'COMBO x999',
+    achievement: 'ACHIEVEMENT UNLOCKED: FIRST LOGIN',
+    pressStart: 'PRESS START TO BEGIN',
+    playerReady: 'PLAYER 1 READY',
+    loadingCreativity: 'LOADING CREATIVITY... 100%',
+    savePoint: 'SAVE POINT REACHED',
+    newQuest: 'NEW QUEST AVAILABLE',
+    bonusStage: 'BONUS STAGE ACTIVATED',
+    ggwp: 'GG WP'
   },
   leaderboard: {
     title: 'HIGH SCORES',

@@ -3,19 +3,812 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>WeNote</title>
     <style>
+      html { font-size: 16px; }
+      @media screen and (min-width: 1920px) { html { font-size: 18px; } }
+      @media screen and (min-width: 2560px) { html { font-size: 20px; } }
       html, body, #app {
         min-height: 100vh;
         margin: 0;
         padding: 0;
         background: #0d0d14;
       }
+      #loading-screen {
+        position: fixed;
+        inset: 0;
+        z-index: 99999;
+        background: #0d0d14;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+      }
+      #loading-screen::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-image:
+          linear-gradient(#22c55e 1px, transparent 1px),
+          linear-gradient(90deg, #22c55e 1px, transparent 1px);
+        background-size: 40px 40px;
+        opacity: 0.08;
+      }
+      #loading-screen::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(rgba(18,16,16,0) 50%, rgba(0,0,0,0.25) 50%),
+          linear-gradient(90deg, rgba(255,0,0,0.06), rgba(0,255,0,0.02), rgba(0,0,255,0.06));
+        background-size: 100% 2px, 3px 100%;
+        opacity: 0.05;
+        pointer-events: none;
+        z-index: 1;
+      }
+      .loading-content {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 28px;
+      }
+      .snake-character {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+      }
+      .snake-head {
+        width: 72px;
+        height: 64px;
+        background: #22c55e;
+        border: 4px solid #000;
+        border-radius: 50% 50% 45% 45%;
+        position: relative;
+        box-shadow: 4px 4px 0 0 rgba(0,0,0,1);
+        animation: snake-bob 2s ease-in-out infinite;
+        transition: transform 0.3s;
+      }
+      .snake-head.excited {
+        animation: snake-bob-fast 1s ease-in-out infinite;
+      }
+      .snake-eye {
+        position: absolute;
+        top: 16px;
+        width: 16px;
+        height: 18px;
+        background: #fff;
+        border: 2px solid #000;
+        border-radius: 50%;
+        overflow: hidden;
+        transition: all 0.3s;
+      }
+      .snake-eye.left { left: 12px; }
+      .snake-eye.right { right: 12px; }
+      .snake-head.excited .snake-eye {
+        width: 19px;
+        height: 21px;
+        top: 14px;
+      }
+      .snake-pupil {
+        position: absolute;
+        bottom: 3px;
+        left: 50%;
+        width: 8px;
+        height: 8px;
+        background: #000;
+        border-radius: 50%;
+        transform: translateX(-50%);
+        animation: eye-look 3s ease-in-out infinite;
+        transition: all 0.3s;
+      }
+      .snake-head.star-eyes .snake-pupil {
+        background: none;
+        width: 14px;
+        height: 14px;
+        bottom: 2px;
+      }
+      .snake-head.star-eyes .snake-pupil::after {
+        content: '\2605';
+        color: #facc15;
+        font-size: 13px;
+        position: absolute;
+        top: -1px;
+        left: 0;
+      }
+      .snake-tongue {
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 4px;
+        height: 12px;
+        background: #f87171;
+        border-radius: 0 0 2px 2px;
+        animation: tongue-flick 2.5s ease-in-out infinite;
+      }
+      .snake-tongue::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: -3px;
+        width: 10px;
+        height: 4px;
+        border-bottom: 3px solid #f87171;
+        border-left: 3px solid transparent;
+        border-right: 3px solid transparent;
+      }
+      .snake-blush {
+        position: absolute;
+        top: 30px;
+        width: 10px;
+        height: 6px;
+        background: #f9a8d4;
+        border-radius: 50%;
+        opacity: 0.6;
+      }
+      .snake-blush.left { left: 6px; }
+      .snake-blush.right { right: 6px; }
+      .speech-bubble {
+        background: #fff;
+        border: 3px solid #000;
+        border-radius: 16px;
+        padding: 8px 16px;
+        box-shadow: 3px 3px 0 0 rgba(0,0,0,1);
+        position: relative;
+        min-width: 180px;
+        text-align: center;
+      }
+      .speech-bubble::before {
+        content: '';
+        position: absolute;
+        top: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 0;
+        height: 0;
+        border-left: 8px solid transparent;
+        border-right: 8px solid transparent;
+        border-bottom: 10px solid #000;
+      }
+      .speech-bubble::after {
+        content: '';
+        position: absolute;
+        top: -6px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 0;
+        height: 0;
+        border-left: 6px solid transparent;
+        border-right: 6px solid transparent;
+        border-bottom: 7px solid #fff;
+      }
+      .bubble-text {
+        color: #1e293b;
+        font-size: 11px;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        white-space: nowrap;
+      }
+      .progress-section {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        width: 280px;
+      }
+      @media screen and (min-width: 640px) {
+        .progress-section { width: 360px; }
+      }
+      .progress-percent {
+        color: #22c55e;
+        font-size: 28px;
+        font-weight: 900;
+        letter-spacing: 2px;
+        text-shadow: 2px 2px 0 rgba(0,0,0,0.8);
+      }
+      .progress-bar-outer {
+        width: 100%;
+        height: 28px;
+        background: #1a1a2e;
+        border: 4px solid #000;
+        border-radius: 12px;
+        box-shadow: 4px 4px 0 0 rgba(0,0,0,1);
+        overflow: hidden;
+        position: relative;
+      }
+      .progress-bar-inner {
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, #4ade80, #22c55e);
+        border-radius: 8px;
+        transition: width 0.15s linear;
+        position: relative;
+        overflow: hidden;
+      }
+      .progress-bar-inner::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 60%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        animation: shimmer 2s linear infinite;
+      }
+      .progress-bar-outer.pulse {
+        animation: bar-pulse 0.3s ease-out;
+      }
+      .progress-stage {
+        color: #4ade80;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        min-height: 16px;
+      }
+      .stage-cursor {
+        display: inline-block;
+        width: 7px;
+        height: 13px;
+        background: #4ade80;
+        margin-left: 2px;
+        vertical-align: middle;
+        animation: cursor-blink 0.6s step-end infinite;
+      }
+      .loading-footer {
+        color: #4ade80;
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 3px;
+        opacity: 0.5;
+        margin-top: 12px;
+      }
+      /* Floating pixel particles */
+      .pixel-particle {
+        position: absolute;
+        border-radius: 2px;
+        z-index: 0;
+        opacity: 0;
+        transition: opacity 0.5s;
+      }
+      .pixel-particle.active {
+        opacity: var(--opacity);
+        animation: particle-float var(--dur) ease-in-out infinite;
+        animation-delay: var(--delay);
+      }
+      /* Bottom marquee */
+      .loading-marquee {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background: #000;
+        border-top: 3px solid #22c55e;
+        overflow: hidden;
+        z-index: 100000;
+        height: 28px;
+        display: flex;
+        align-items: center;
+      }
+      .marquee-track {
+        display: flex;
+        white-space: nowrap;
+      }
+      .marquee-text {
+        color: #4ade80;
+        font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 0 4px;
+        flex-shrink: 0;
+      }
+      #loading-screen.dismiss {
+        animation: loading-exit 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+      }
+      #loading-screen.dismiss ~ .loading-marquee {
+        animation: loading-exit 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+      }
+      @keyframes snake-bob {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-6px); }
+      }
+      @keyframes snake-bob-fast {
+        0%, 100% { transform: translateY(0) scale(1); }
+        50% { transform: translateY(-8px) scale(1.05); }
+      }
+      @keyframes eye-look {
+        0%, 100% { transform: translateX(-50%); }
+        30% { transform: translateX(-90%); }
+        70% { transform: translateX(-10%); }
+      }
+      @keyframes tongue-flick {
+        0%, 40%, 100% { opacity: 0; height: 0; }
+        45%, 55% { opacity: 1; height: 12px; }
+      }
+      @keyframes cursor-blink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0; }
+      }
+      @keyframes loading-exit {
+        0% { opacity: 1; transform: translateY(0) scale(1); }
+        100% { opacity: 0; transform: translateY(-40px) scale(0.98); }
+      }
+      @keyframes shimmer {
+        0% { left: -100%; }
+        100% { left: 200%; }
+      }
+      @keyframes bar-pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.03); }
+        100% { transform: scale(1); }
+      }
+      @keyframes particle-float {
+        0% { transform: translateY(0) translateX(0); opacity: var(--opacity); }
+        25% { transform: translateY(-25vh) translateX(15px); }
+        50% { transform: translateY(-50vh) translateX(-10px); opacity: var(--opacity); }
+        75% { transform: translateY(-75vh) translateX(8px); }
+        100% { transform: translateY(-100vh) translateX(0); opacity: 0; }
+      }
+      /* marquee-scroll removed, using JS animation instead */
+      /* Start screen - 阻塞层 */
+      #start-screen {
+        position: fixed;
+        inset: 0;
+        z-index: 100001;
+        background: #0d0d14;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+      }
+      #start-screen::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-image:
+          linear-gradient(#22c55e 1px, transparent 1px),
+          linear-gradient(90deg, #22c55e 1px, transparent 1px);
+        background-size: 40px 40px;
+        opacity: 0.08;
+      }
+      .start-content {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 40px;
+      }
+      .start-btn {
+        padding: 20px 64px;
+        background: #22c55e;
+        color: #000;
+        font-family: inherit;
+        font-size: 32px;
+        font-weight: 900;
+        letter-spacing: 6px;
+        text-transform: uppercase;
+        border: 5px solid #000;
+        border-radius: 16px;
+        box-shadow: 6px 6px 0 0 rgba(0,0,0,1);
+        cursor: pointer;
+        animation: start-pulse 1.5s ease-in-out infinite;
+        transition: transform 0.1s, box-shadow 0.1s;
+      }
+      .start-btn:hover {
+        transform: scale(1.05);
+        box-shadow: 8px 8px 0 0 rgba(0,0,0,1);
+        background: #4ade80;
+      }
+      .start-btn:active {
+        transform: scale(0.97) translateY(3px);
+        box-shadow: 2px 2px 0 0 rgba(0,0,0,1);
+      }
+      .start-hint {
+        color: #4ade80;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 4px;
+        text-transform: uppercase;
+        opacity: 0.5;
+        animation: cursor-blink 1.2s step-end infinite;
+      }
+      .start-title {
+        color: #22c55e;
+        font-size: 14px;
+        font-weight: 900;
+        letter-spacing: 6px;
+        text-transform: uppercase;
+        text-shadow: 2px 2px 0 rgba(0,0,0,0.8);
+      }
+      @keyframes start-pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.04); }
+      }
+      #start-screen.dismiss {
+        animation: loading-exit 0.4s ease forwards;
+        pointer-events: none;
+      }
     </style>
   </head>
   <body>
+    <!-- Start screen - 阻塞等待用户点击 -->
+    <div id="start-screen">
+      <div class="start-content">
+        <div class="snake-character">
+          <div class="snake-head">
+            <div class="snake-eye left"><div class="snake-pupil"></div></div>
+            <div class="snake-eye right"><div class="snake-pupil"></div></div>
+            <div class="snake-blush left"></div>
+            <div class="snake-blush right"></div>
+            <div class="snake-tongue"></div>
+          </div>
+          <div class="speech-bubble">
+            <span class="bubble-text">WELCOME TO WENOTE!</span>
+          </div>
+        </div>
+        <button class="start-btn" id="start-btn">&#9654; PRESS START</button>
+        <div class="start-hint">CLICK TO BEGIN</div>
+        <div class="start-title">&copy; 2025 WeNote</div>
+      </div>
+    </div>
+
+    <div id="loading-screen">
+      <!-- Floating particles -->
+      <div class="pixel-particle" style="--size:6px;--color:#22c55e;--opacity:0.25;--dur:8s;--delay:0s;width:6px;height:6px;background:#22c55e;left:10%;bottom:5%"></div>
+      <div class="pixel-particle" style="--size:4px;--color:#facc15;--opacity:0.2;--dur:10s;--delay:1s;width:4px;height:4px;background:#facc15;left:25%;bottom:10%"></div>
+      <div class="pixel-particle" style="--size:5px;--color:#ec4899;--opacity:0.2;--dur:9s;--delay:0.5s;width:5px;height:5px;background:#ec4899;left:45%;bottom:3%"></div>
+      <div class="pixel-particle" style="--size:7px;--color:#4ade80;--opacity:0.15;--dur:11s;--delay:2s;width:7px;height:7px;background:#4ade80;left:65%;bottom:8%"></div>
+      <div class="pixel-particle" style="--size:4px;--color:#22c55e;--opacity:0.3;--dur:7s;--delay:1.5s;width:4px;height:4px;background:#22c55e;left:80%;bottom:2%"></div>
+      <div class="pixel-particle" style="--size:5px;--color:#facc15;--opacity:0.2;--dur:12s;--delay:3s;width:5px;height:5px;background:#facc15;left:90%;bottom:6%"></div>
+      <div class="pixel-particle" style="--size:6px;--color:#60a5fa;--opacity:0.18;--dur:9s;--delay:0.8s;width:6px;height:6px;background:#60a5fa;left:35%;bottom:12%"></div>
+      <div class="pixel-particle" style="--size:3px;--color:#ec4899;--opacity:0.25;--dur:10s;--delay:2.5s;width:3px;height:3px;background:#ec4899;left:55%;bottom:1%"></div>
+
+      <div class="loading-content">
+        <div class="snake-character">
+          <div class="snake-head" id="snake-head">
+            <div class="snake-eye left"><div class="snake-pupil"></div></div>
+            <div class="snake-eye right"><div class="snake-pupil"></div></div>
+            <div class="snake-blush left"></div>
+            <div class="snake-blush right"></div>
+            <div class="snake-tongue"></div>
+          </div>
+          <div class="speech-bubble">
+            <span class="bubble-text" id="bubble-text">LOADING WENOTE...</span>
+          </div>
+        </div>
+        <div class="progress-section">
+          <div class="progress-percent" id="progress-percent">0%</div>
+          <div class="progress-bar-outer" id="progress-bar-outer">
+            <div class="progress-bar-inner" id="progress-bar"></div>
+          </div>
+          <div class="progress-stage">
+            <span id="stage-text"></span><span class="stage-cursor"></span>
+          </div>
+        </div>
+        <div class="loading-footer">&copy; 2025 WeNote &mdash; Press Start</div>
+      </div>
+    </div>
+
+    <!-- Bottom marquee -->
+    <div class="loading-marquee" id="loading-marquee">
+      <div class="marquee-track" id="marquee-track">
+        <span class="marquee-text">WELCOME TO WENOTE &#9733; YOUR SMART NOTE COMPANION &#9733; POWERED BY AI &#9733; LEVEL UP YOUR WRITING &#9733; LET'S CREATE SOMETHING AMAZING &#9733; INSERT COIN TO CONTINUE &#9733; ACHIEVEMENT UNLOCKED: FIRST LOGIN &#9733; PRESS START TO BEGIN &#9733; PLAYER 1 READY &#9733; LOADING CREATIVITY... 100% &#9733; SAVE POINT REACHED &#9733; NEW QUEST AVAILABLE &#9733; BONUS STAGE ACTIVATED &#9733; GG WP &#9733;&nbsp;&nbsp;&nbsp;</span>
+        <span class="marquee-text">WELCOME TO WENOTE &#9733; YOUR SMART NOTE COMPANION &#9733; POWERED BY AI &#9733; LEVEL UP YOUR WRITING &#9733; LET'S CREATE SOMETHING AMAZING &#9733; INSERT COIN TO CONTINUE &#9733; ACHIEVEMENT UNLOCKED: FIRST LOGIN &#9733; PRESS START TO BEGIN &#9733; PLAYER 1 READY &#9733; LOADING CREATIVITY... 100% &#9733; SAVE POINT REACHED &#9733; NEW QUEST AVAILABLE &#9733; BONUS STAGE ACTIVATED &#9733; GG WP &#9733;&nbsp;&nbsp;&nbsp;</span>
+      </div>
+    </div>
+
     <div id="app"></div>
+
+    <!-- Marquee animation (JS-based for seamless loop) -->
+    <script>
+      (function() {
+        var track = document.getElementById('marquee-track');
+        if (!track) return;
+        var spans = track.querySelectorAll('.marquee-text');
+        var offset = 0;
+        var speed = 60;
+        var lastTime = 0;
+        function getContentWidth() {
+          return spans[0] ? spans[0].offsetWidth : 0;
+        }
+        function tick(now) {
+          if (lastTime === 0) { lastTime = now; requestAnimationFrame(tick); return; }
+          var dt = (now - lastTime) / 1000;
+          lastTime = now;
+          var w = getContentWidth();
+          if (w > 0) {
+            offset -= speed * dt;
+            if (offset <= -w) offset += w;
+          }
+          track.style.transform = 'translateX(' + offset + 'px)';
+          requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+      })();
+    </script>
+
     <script type="module" src="/src/main.js"></script>
+
+    <script>
+      (function() {
+        var bubbleMessages = [
+          'LOADING WENOTE...',
+          'PRESS START TO WRITE',
+          'INSERTING COINS...',
+          'BOOTING SYSTEM...',
+          'WARMING UP AI...',
+          'FEEDING THE SNAKE...',
+          'READY PLAYER ONE',
+          'LEVEL UP YOUR NOTES'
+        ];
+        var stages = [
+          { at: 0, text: 'INITIALIZING SYSTEM' },
+          { at: 20, text: 'LOADING ASSETS' },
+          { at: 45, text: 'CONNECTING TO SERVER' },
+          { at: 70, text: 'PREPARING WORKSPACE' },
+          { at: 90, text: 'ALMOST READY' }
+        ];
+        var progressBar = document.getElementById('progress-bar');
+        var progressBarOuter = document.getElementById('progress-bar-outer');
+        var percentEl = document.getElementById('progress-percent');
+        var stageEl = document.getElementById('stage-text');
+        var bubbleEl = document.getElementById('bubble-text');
+        var snakeHead = document.getElementById('snake-head');
+        var currentPercent = 0;
+        var targetPercent = 0;
+        var dismissed = false;
+        var started = false;
+        var currentStageIdx = -1;
+        var stageTyping = '';
+        var stageTarget = '';
+        var typeTimer = null;
+        var startTime = 0;
+        var duration = 5000;
+
+        /* ===== Web Audio API - 8-bit sounds ===== */
+        var audioCtx = null;
+        var melodyTimer = null;
+
+        function initAudio() {
+          try {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') {
+              audioCtx.resume();
+            }
+          } catch(e) {}
+        }
+
+        function playNote(freq, startAt, dur, type, gainVal) {
+          if (!audioCtx) return;
+          var osc = audioCtx.createOscillator();
+          var gain = audioCtx.createGain();
+          osc.type = type || 'square';
+          osc.frequency.setValueAtTime(freq, startAt);
+          gain.gain.setValueAtTime(gainVal || 0.06, startAt);
+          gain.gain.exponentialRampToValueAtTime(0.001, startAt + dur);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(startAt);
+          osc.stop(startAt + dur);
+          // 高八度谐波 - 让音色更明亮清脆
+          var osc2 = audioCtx.createOscillator();
+          var gain2 = audioCtx.createGain();
+          osc2.type = 'square';
+          osc2.frequency.setValueAtTime(freq * 2, startAt);
+          gain2.gain.setValueAtTime((gainVal || 0.06) * 0.3, startAt);
+          gain2.gain.exponentialRampToValueAtTime(0.001, startAt + dur * 0.7);
+          osc2.connect(gain2);
+          gain2.connect(audioCtx.destination);
+          osc2.start(startAt);
+          osc2.stop(startAt + dur * 0.7);
+        }
+
+        function playMelody() {
+          if (!audioCtx || dismissed) return;
+          var now = audioCtx.currentTime;
+          var notes = [784, 988, 1175, 988, 784, 1175, 988, 784];
+          var tempo = 0.18;
+          for (var i = 0; i < notes.length; i++) {
+            playNote(notes[i], now + i * tempo, tempo * 0.7, 'square', 0.025);
+          }
+          melodyTimer = setTimeout(playMelody, notes.length * tempo * 1000 + 300);
+        }
+
+        function playMilestone() {
+          if (!audioCtx) return;
+          var now = audioCtx.currentTime;
+          playNote(880, now, 0.06, 'square', 0.08);
+          playNote(1175, now + 0.06, 0.06, 'square', 0.08);
+          playNote(1397, now + 0.12, 0.1, 'square', 0.1);
+        }
+
+        function playComplete() {
+          if (!audioCtx) return;
+          var now = audioCtx.currentTime;
+          var notes = [784, 988, 1175, 1568];
+          for (var i = 0; i < notes.length; i++) {
+            playNote(notes[i], now + i * 0.12, 0.18, 'square', 0.1);
+          }
+        }
+
+        function playClickSound() {
+          if (!audioCtx) return;
+          var now = audioCtx.currentTime;
+          playNote(440, now, 0.05, 'square', 0.1);
+          playNote(660, now + 0.05, 0.08, 'square', 0.1);
+        }
+
+        function stopMelody() {
+          if (melodyTimer) { clearTimeout(melodyTimer); melodyTimer = null; }
+        }
+
+        /* ===== Typewriter effect ===== */
+        function typeStage(text) {
+          stageTarget = text;
+          stageTyping = '';
+          clearInterval(typeTimer);
+          if (stageEl) stageEl.textContent = '';
+          var i = 0;
+          typeTimer = setInterval(function() {
+            if (i < text.length) {
+              stageTyping += text[i];
+              if (stageEl) stageEl.textContent = stageTyping;
+              i++;
+            } else {
+              if (stageEl) stageEl.textContent = stageTyping + '...';
+              clearInterval(typeTimer);
+            }
+          }, 35);
+        }
+
+        /* ===== Bubble rotation ===== */
+        var bubbleIdx = 0;
+        var bubbleTimer = null;
+        function startBubbleRotation() {
+          bubbleTimer = setInterval(function() {
+            if (dismissed) return;
+            bubbleIdx = (bubbleIdx + 1) % bubbleMessages.length;
+            if (bubbleEl) bubbleEl.textContent = bubbleMessages[bubbleIdx];
+          }, 1800);
+        }
+
+        /* ===== Snake expression ===== */
+        function updateSnakeExpression(pct) {
+          if (!snakeHead) return;
+          if (pct >= 100) {
+            snakeHead.classList.remove('excited');
+            snakeHead.classList.add('star-eyes');
+          } else if (pct >= 50) {
+            snakeHead.classList.add('excited');
+            snakeHead.classList.remove('star-eyes');
+          }
+        }
+
+        /* ===== Progress bar pulse ===== */
+        function pulseBar() {
+          if (!progressBarOuter) return;
+          progressBarOuter.classList.remove('pulse');
+          void progressBarOuter.offsetWidth;
+          progressBarOuter.classList.add('pulse');
+        }
+
+        /* ===== Activate particles ===== */
+        function activateParticles() {
+          var particles = document.querySelectorAll('.pixel-particle');
+          for (var i = 0; i < particles.length; i++) {
+            particles[i].classList.add('active');
+          }
+        }
+
+        /* ===== Easing ===== */
+        function easeOut(t) {
+          return 1 - Math.pow(1 - t, 2.5);
+        }
+
+        /* ===== Main tick ===== */
+        function tick() {
+          if (dismissed || !started) return;
+          var elapsed = Date.now() - startTime;
+          var t = Math.min(elapsed / duration, 1);
+          targetPercent = Math.min(Math.floor(easeOut(t) * 95), 95);
+          if (currentPercent < targetPercent) {
+            currentPercent += Math.max(1, Math.floor((targetPercent - currentPercent) * 0.3));
+            if (currentPercent > targetPercent) currentPercent = targetPercent;
+          }
+          if (progressBar) progressBar.style.width = currentPercent + '%';
+          if (percentEl) percentEl.textContent = currentPercent + '%';
+
+          updateSnakeExpression(currentPercent);
+
+          for (var s = stages.length - 1; s >= 0; s--) {
+            if (currentPercent >= stages[s].at) {
+              if (s !== currentStageIdx) {
+                currentStageIdx = s;
+                typeStage(stages[s].text);
+                if (s > 0) {
+                  playMilestone();
+                  pulseBar();
+                }
+              }
+              break;
+            }
+          }
+          requestAnimationFrame(tick);
+        }
+
+        /* ===== Auto start ===== */
+        function handleStart() {
+          if (started) return;
+          started = true;
+          startTime = Date.now();
+
+          initAudio();
+          playMelody();
+
+          activateParticles();
+          startBubbleRotation();
+          if (bubbleEl) bubbleEl.textContent = bubbleMessages[0];
+
+          currentStageIdx = -1;
+          requestAnimationFrame(tick);
+        }
+
+        /* ===== Start screen click ===== */
+        var startScreen = document.getElementById('start-screen');
+        var startBtn = document.getElementById('start-btn');
+        function onStartClick() {
+          if (started) return;
+          startScreen.classList.add('dismiss');
+          setTimeout(function() { if (startScreen.parentNode) startScreen.remove(); }, 500);
+          handleStart();
+        }
+        if (startBtn) startBtn.addEventListener('click', onStartClick);
+        if (startScreen) startScreen.addEventListener('click', onStartClick);
+
+        /* ===== Dismiss ===== */
+        window.__dismissLoading = function() {
+          if (dismissed) return;
+          var ss = document.getElementById('start-screen');
+          if (ss) ss.remove();
+          if (!started) { handleStart(); }
+          dismissed = true;
+          stopMelody();
+
+          currentPercent = 100;
+          if (progressBar) progressBar.style.width = '100%';
+          if (percentEl) percentEl.textContent = '100%';
+          if (stageEl) stageEl.textContent = 'READY!';
+          updateSnakeExpression(100);
+          playComplete();
+
+          setTimeout(function() {
+            var screen = document.getElementById('loading-screen');
+            var marquee = document.getElementById('loading-marquee');
+            if (screen) {
+              screen.classList.add('dismiss');
+              screen.addEventListener('animationend', function() {
+                screen.remove();
+                if (marquee) marquee.remove();
+              });
+              setTimeout(function() {
+                if (screen.parentNode) screen.remove();
+                if (marquee && marquee.parentNode) marquee.remove();
+              }, 800);
+            }
+          }, 500);
+        };
+      })();
+    </script>
   </body>
 </html>

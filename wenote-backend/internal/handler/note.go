@@ -1,9 +1,7 @@
 package handler
 
 import (
-	"context"
 	"strconv"
-	"time"
 
 	"wenote-backend/internal/model"
 	"wenote-backend/internal/repo"
@@ -413,26 +411,4 @@ func (h *NoteHandler) GenerateSummaryAndTags(c *gin.Context) {
 		"summary": result.Summary,
 		"tags":    result.Tags,
 	})
-}
-
-// AIAssist AI写作助手
-// POST /api/v1/notes/ai/assist
-func (h *NoteHandler) AIAssist(c *gin.Context) {
-	var req model.AIAssistReq
-	if err := c.ShouldBindJSON(&req); err != nil {
-		response.ValidationError(c, err)
-		return
-	}
-
-	// 创建超时上下文
-	ctx, cancel := context.WithTimeout(c.Request.Context(), 30*time.Second)
-	defer cancel()
-
-	result, err := h.noteService.AIAssist(ctx, &req)
-	if err != nil {
-		response.InternalError(c, err.Error())
-		return
-	}
-
-	response.Success(c, result)
 }

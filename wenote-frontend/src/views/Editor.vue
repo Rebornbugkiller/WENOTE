@@ -370,15 +370,15 @@ const removeTag = (tagId) => {
   <div class="min-h-screen bg-slate-50">
     <!-- Header -->
     <header class="bg-white border-b-4 border-black sticky top-0 z-10">
-      <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-        <div class="flex items-center gap-4">
+      <div class="max-w-6xl mx-auto px-4 md:px-6 py-3 md:py-4 flex items-center justify-between">
+        <div class="flex items-center gap-2 md:gap-4">
           <button
             @click="goBack"
-            class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-lg border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 transition-all flex items-center gap-2"
+            class="px-3 md:px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-lg border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 transition-all flex items-center gap-2"
             :title="t('editor.back')"
           >
             <ArrowLeft class="w-5 h-5" />
-            <span>{{ t('editor.back') }}</span>
+            <span class="hidden md:inline">{{ t('editor.back') }}</span>
           </button>
           <div class="flex gap-2">
             <button
@@ -401,31 +401,32 @@ const removeTag = (tagId) => {
         </div>
         <button
           @click="handleSave"
-          class="px-6 py-2 bg-green-500 text-white border-2 border-black rounded-xl font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 transition-all active:translate-y-0 active:shadow-none"
+          class="px-4 md:px-6 py-2 bg-green-500 text-white border-2 border-black rounded-xl font-bold shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 transition-all active:translate-y-0 active:shadow-none text-sm md:text-base"
         >
-          <Save class="w-4 h-4 inline mr-2" />
-          {{ isNewMode && !isSaved ? t('editor.createNote') : t('editor.saveChanges') }}
+          <Save class="w-4 h-4 inline mr-1 md:mr-2" />
+          <span class="hidden md:inline">{{ isNewMode && !isSaved ? t('editor.createNote') : t('editor.saveChanges') }}</span>
+          <span class="md:hidden">{{ t('common.save') }}</span>
         </button>
       </div>
     </header>
 
     <!-- Content -->
-    <div class="max-w-screen-2xl mx-auto px-6 py-8 flex gap-8">
+    <div class="max-w-screen-2xl mx-auto px-4 md:px-6 py-4 md:py-8 flex flex-col lg:flex-row gap-4 lg:gap-8">
       <!-- Editor Area -->
-      <div class="flex-1">
+      <div class="flex-1 min-w-0">
         <!-- Title -->
         <div class="mb-4">
           <input
             v-model="formData.title"
             type="text"
             :disabled="isLoading"
-            class="w-full bg-transparent text-4xl font-black text-slate-800 placeholder-slate-400 focus:outline-none disabled:opacity-50"
+            class="w-full bg-transparent text-2xl md:text-3xl lg:text-4xl font-black text-slate-800 placeholder-slate-400 focus:outline-none disabled:opacity-50"
             :placeholder="isLoading ? t('common.loading') : t('editor.titlePlaceholder')"
           />
         </div>
 
         <!-- Vditor -->
-        <div class="bg-white border-2 border-black rounded-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] relative" style="overflow: visible;">
+        <div class="bg-white border-2 border-black rounded-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] relative vditor-container" style="overflow: visible;">
           <div ref="editorContainer" class="vditor-wrapper"></div>
           <!-- Loading overlay -->
           <div v-if="isLoading" class="absolute inset-0 bg-white/80 flex items-center justify-center rounded-xl">
@@ -435,7 +436,7 @@ const removeTag = (tagId) => {
       </div>
 
       <!-- Sidebar -->
-      <div class="w-72 flex-shrink-0 space-y-4">
+      <div class="w-full lg:w-72 lg:flex-shrink-0 space-y-4">
         <!-- AI Panel (只在编辑模式显示) -->
         <div v-if="!isNewMode || isSaved" class="bg-white p-4 rounded-xl border-2 border-green-200 shadow-sm">
           <div class="flex items-center justify-between mb-3">
@@ -574,6 +575,17 @@ const removeTag = (tagId) => {
 </template>
 
 <style scoped>
+/* 移动端编辑器高度 */
+.vditor-container :deep(.vditor) {
+  height: 50vh !important;
+}
+
+@media (min-width: 768px) {
+  .vditor-container :deep(.vditor) {
+    height: calc(100vh - 120px) !important;
+  }
+}
+
 .vditor-wrapper :deep(.vditor) {
   border: none;
   height: 100%;

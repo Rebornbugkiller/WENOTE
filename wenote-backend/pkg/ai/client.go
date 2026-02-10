@@ -11,5 +11,4 @@ type SummaryResult struct {
 // Client AI 客户端接口
 type Client interface {
 	GenerateSummaryAndTags(ctx context.Context, content string, summaryLen int) (*SummaryResult, error)
-	GenerateText(ctx context.Context, systemPrompt, userInput string) (string, error)
 }

@@ -217,18 +217,3 @@ type AttachmentUploadResp struct {
 	ID  uint64 `json:"id"`
 	URL string `json:"url"`
 }
-
-// ========== AI 写作助手 ==========
-
-// AIAssistReq AI写作助手请求
-type AIAssistReq struct {
-	Action       string `json:"action" binding:"required,oneof=continue rewrite expand translate"` // 操作类型
-	Context      string `json:"context"`                                                           // 前文内容
-	SelectedText string `json:"selected_text"`                                                     // 选中的文本（改写/扩写时必填）
-	Language     string `json:"language"`                                                          // 翻译目标语言（en/zh）
-}
-
-// AIAssistResp AI写作助手响应
-type AIAssistResp struct {
-	Result string `json:"result"` // 生成的结果
-}

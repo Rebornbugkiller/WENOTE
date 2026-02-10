@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-green-50 flex items-center justify-center p-4 relative overflow-hidden select-none">
+  <div class="min-h-[100dvh] bg-green-50 flex items-center justify-center p-2 md:p-4 relative overflow-hidden select-none">
     <!-- CRT 扫描线 -->
     <div class="fixed inset-0 z-50 pointer-events-none opacity-5" style="background: linear-gradient(rgba(18,16,16,0) 50%, rgba(0,0,0,0.25) 50%), linear-gradient(90deg, rgba(255,0,0,0.06), rgba(0,255,0,0.02), rgba(0,0,255,0.06)); background-size: 100% 2px, 3px 100%;"></div>
 
@@ -25,9 +25,9 @@
       </div>
     </Transition>
 
-    <!-- Slogan -->
-    <div class="absolute top-8 left-1/2 -translate-x-1/2 z-30">
-      <h1 v-if="locale === 'en-US'" class="slogan-text text-4xl md:text-5xl font-black tracking-wider">
+    <!-- Slogan - 只在大屏幕高度足够时显示 -->
+    <div class="absolute top-4 left-1/2 -translate-x-1/2 z-30 hidden xl:block pointer-events-none">
+      <h1 v-if="locale === 'en-US'" class="slogan-text text-3xl font-black tracking-wider">
         <span class="slogan-word text-slate-800" style="--i:0">We</span>
         <span class="slogan-word text-green-500" style="--i:1">Note</span>
         <span class="slogan-word text-slate-800" style="--i:2">,</span>
@@ -35,7 +35,7 @@
         <span class="slogan-word text-green-500" style="--i:4">Create</span>
         <span class="slogan-word text-slate-800" style="--i:5">.</span>
       </h1>
-      <h1 v-else class="slogan-text text-4xl md:text-5xl font-black tracking-wider">
+      <h1 v-else class="slogan-text text-3xl font-black tracking-wider">
         <span class="slogan-word text-green-500" style="--i:0">记录</span>
         <span class="slogan-word text-slate-800" style="--i:1">此刻</span>
         <span class="slogan-word text-slate-800" style="--i:2">，</span>
@@ -45,7 +45,7 @@
     </div>
 
     <!-- 主卡片容器 -->
-    <div class="relative z-20 w-full max-w-7xl mx-auto flex items-center justify-center gap-8 lg:gap-16">
+    <div class="relative z-20 w-full max-w-7xl mx-auto flex items-center justify-center gap-8 lg:gap-16 pt-2 md:pt-12 xl:pt-16">
       
       <!-- Left Wing: AutoSnake Console -->
       <div class="hidden lg:block transform -rotate-6 hover:rotate-0 transition-transform duration-500 hover:scale-105">
@@ -53,9 +53,9 @@
       </div>
 
       <!-- Center Stage: Login Card -->
-      <div class="w-full max-w-md relative group">
-        <!-- Language & Fever Mode Toggle -->
-        <div class="absolute -top-16 right-0 flex gap-2 z-30">
+      <div class="w-full max-w-md relative group px-2 md:px-0">
+        <!-- Language & Fever Mode Toggle - Desktop: absolute, Mobile: inside card -->
+        <div class="hidden md:flex absolute -top-16 right-0 gap-2 z-30">
           <button
             @click="toggleLocale"
             class="bg-blue-600 text-white px-4 py-2 rounded-lg font-black transform hover:scale-110 active:scale-95 transition-all shadow-[4px_4px_0_#000] border-2 border-black"
@@ -71,7 +71,7 @@
           </button>
         </div>
 
-        <div class="bg-white border-4 border-black rounded-[2rem] shadow-[16px_16px_0px_0px_rgba(0,0,0,1)] overflow-visible transition-all duration-100"
+        <div class="bg-white border-4 border-black rounded-[2rem] shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] md:shadow-[16px_16px_0px_0px_rgba(0,0,0,1)] overflow-visible transition-all duration-100"
           :class="{ 'animate-shake border-red-500 shadow-red-500': isFeverMode }"
         >
           <!-- 卡片头部 -->
@@ -86,8 +86,25 @@
               <div v-for="i in 4" :key="i" class="w-1.5 h-3 bg-black/20 rounded-full"></div>
             </div>
           </div>
-    
-          <div class="p-8">
+
+          <div class="p-3 md:p-8">
+            <!-- Mobile: Language & Fever Mode Toggle -->
+            <div class="flex md:hidden justify-center gap-2 mb-3">
+              <button
+                @click="toggleLocale"
+                class="bg-blue-600 text-white px-3 py-1.5 rounded-lg font-black text-sm transform hover:scale-110 active:scale-95 transition-all shadow-[2px_2px_0_#000] border-2 border-black"
+              >
+                {{ locale === 'zh-CN' ? 'EN' : '中' }}
+              </button>
+              <button
+                @click="toggleFeverMode"
+                class="bg-red-600 text-white px-3 py-1.5 rounded-lg font-black italic text-sm transform hover:scale-110 active:scale-95 transition-all shadow-[2px_2px_0_#000] border-2 border-black"
+                :class="{ 'animate-pulse': isFeverMode }"
+              >
+                {{ isFeverMode ? '🔥' : '🚨' }}
+              </button>
+            </div>
+
             <!-- 像素头像 -->
             <PixelAvatar
               :focus-field="focusField"
@@ -98,7 +115,7 @@
             />
     
             <!-- 标题 & 模式切换 -->
-            <div class="text-center mb-6">
+            <div class="text-center mb-4 md:mb-6">
               <div class="flex justify-center space-x-4 mb-2">
                 <button
                   @click="isLogin && toggleMode()"
@@ -113,14 +130,14 @@
                   :class="isLogin ? 'text-black border-green-500' : 'text-slate-300 border-transparent hover:text-slate-500'"
                 >{{ t('login.loadSave') }}</button>
               </div>
-              <h1 class="text-4xl font-black text-slate-800 tracking-tighter drop-shadow-[2px_2px_0_rgba(0,0,0,1)]">
+              <h1 class="text-3xl md:text-4xl font-black text-slate-800 tracking-tighter drop-shadow-[2px_2px_0_rgba(0,0,0,1)]">
                 {{ isLogin ? 'WE' : 'JOIN ' }}<span class="text-green-500" :class="{ 'text-red-500 animate-pulse': isFeverMode }">NOTE</span>
               </h1>
               <p class="text-xs font-bold text-slate-400 tracking-widest mt-1">{{ t('login.slogan') }}</p>
             </div>
     
             <!-- 表单 -->
-            <form @submit.prevent="handleSubmit" class="space-y-4">
+            <form @submit.prevent="handleSubmit" class="space-y-3 md:space-y-4">
               <!-- 用户名 -->
               <div class="group relative">
                 <label class="block text-xs font-black uppercase tracking-wider mb-1 ml-1">{{ isLogin ? t('login.playerId') : t('login.heroName') }}</label>
@@ -131,7 +148,7 @@
                   <input
                     v-model="form.username"
                     type="text"
-                    class="block w-full pl-12 pr-4 py-3 border-4 border-black rounded-xl bg-slate-50 focus:bg-white focus:outline-none focus:shadow-[4px_4px_0px_0px_rgba(34,197,94,1)] transition-all font-black text-lg"
+                    class="block w-full pl-12 pr-4 py-2.5 md:py-3 border-4 border-black rounded-xl bg-slate-50 focus:bg-white focus:outline-none focus:shadow-[4px_4px_0px_0px_rgba(34,197,94,1)] transition-all font-black text-base md:text-lg"
                     :class="{ 'focus:shadow-red-500': isFeverMode }"
                     :placeholder="isLogin ? 'USERNAME' : 'YOUR NAME'"
                     @focus="focusField = 'username'"
@@ -151,7 +168,7 @@
                   <input
                     v-model="form.password"
                     :type="showPassword ? 'text' : 'password'"
-                    class="block w-full pl-12 pr-12 py-3 border-4 border-black rounded-xl bg-slate-50 focus:bg-white focus:outline-none focus:shadow-[4px_4px_0px_0px_rgba(236,72,153,1)] transition-all font-black text-lg"
+                    class="block w-full pl-12 pr-12 py-2.5 md:py-3 border-4 border-black rounded-xl bg-slate-50 focus:bg-white focus:outline-none focus:shadow-[4px_4px_0px_0px_rgba(236,72,153,1)] transition-all font-black text-base md:text-lg"
                     :class="{ 'focus:shadow-red-500': isFeverMode }"
                     placeholder="PASSWORD"
                     @focus="focusField = 'password'"
@@ -176,7 +193,7 @@
                     <input
                       v-model="form.confirmPassword"
                       :type="showConfirmPassword ? 'text' : 'password'"
-                      class="block w-full pl-12 pr-12 py-3 border-4 border-black rounded-xl bg-slate-50 focus:bg-white focus:outline-none focus:shadow-[4px_4px_0px_0px_rgba(234,179,8,1)] transition-all font-black text-lg"
+                      class="block w-full pl-12 pr-12 py-2.5 md:py-3 border-4 border-black rounded-xl bg-slate-50 focus:bg-white focus:outline-none focus:shadow-[4px_4px_0px_0px_rgba(234,179,8,1)] transition-all font-black text-base md:text-lg"
                       :class="{ 'focus:shadow-red-500': isFeverMode }"
                       placeholder="REPEAT PASS"
                       @focus="focusField = 'confirm'"
@@ -196,21 +213,21 @@
                 type="submit"
                 :disabled="isLoading"
                 @mouseenter="playSFX('hover')"
-                class="w-full mt-6 bg-black text-white py-4 rounded-xl border-4 border-transparent flex items-center justify-center gap-3 hover:-translate-y-1 transition-all active:shadow-none active:translate-y-1 disabled:opacity-80"
-                :class="isLogin ? 'shadow-[8px_8px_0px_0px_rgba(34,197,94,1)] hover:shadow-[12px_12px_0px_0px_rgba(34,197,94,1)]' : 'shadow-[8px_8px_0px_0px_rgba(59,130,246,1)] hover:shadow-[12px_12px_0px_0px_rgba(59,130,246,1)]'"
+                class="w-full mt-4 md:mt-6 bg-black text-white py-3 md:py-4 rounded-xl border-4 border-transparent flex items-center justify-center gap-2 md:gap-3 hover:-translate-y-1 transition-all active:shadow-none active:translate-y-1 disabled:opacity-80"
+                :class="isLogin ? 'shadow-[6px_6px_0px_0px_rgba(34,197,94,1)] md:shadow-[8px_8px_0px_0px_rgba(34,197,94,1)] hover:shadow-[8px_8px_0px_0px_rgba(34,197,94,1)] md:hover:shadow-[12px_12px_0px_0px_rgba(34,197,94,1)]' : 'shadow-[6px_6px_0px_0px_rgba(59,130,246,1)] md:shadow-[8px_8px_0px_0px_rgba(59,130,246,1)] hover:shadow-[8px_8px_0px_0px_rgba(59,130,246,1)] md:hover:shadow-[12px_12px_0px_0px_rgba(59,130,246,1)]'"
               >
                 <template v-if="isLoading">
-                  <div class="w-full h-8 bg-gray-800 rounded-full overflow-hidden border-2 border-white relative">
+                  <div class="w-full h-6 md:h-8 bg-gray-800 rounded-full overflow-hidden border-2 border-white relative">
                     <div class="h-full bg-green-500 relative animate-loading-bar">
-                      <div class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-4 h-4 bg-yellow-400 rounded-full border-2 border-black z-10"></div>
+                      <div class="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-3 h-3 md:w-4 md:h-4 bg-yellow-400 rounded-full border-2 border-black z-10"></div>
                     </div>
-                    <div class="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 bg-red-500 rounded-full border border-white animate-pulse"></div>
+                    <div class="absolute right-2 top-1/2 -translate-y-1/2 w-2 h-2 md:w-3 md:h-3 bg-red-500 rounded-full border border-white animate-pulse"></div>
                   </div>
                 </template>
                 <template v-else>
-                  <span class="font-black text-2xl tracking-widest italic">{{ isLogin ? t('login.loadSave') : t('login.createHero') }}</span>
-                  <svg v-if="isLogin" class="w-8 h-8 text-green-400 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-                  <svg v-else class="w-8 h-8 text-blue-400 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+                  <span class="font-black text-lg md:text-2xl tracking-widest italic">{{ isLogin ? t('login.loadSave') : t('login.createHero') }}</span>
+                  <svg v-if="isLogin" class="w-6 h-6 md:w-8 md:h-8 text-green-400 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+                  <svg v-else class="w-6 h-6 md:w-8 md:h-8 text-blue-400 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
                 </template>
               </button>
             </form>
@@ -487,7 +504,7 @@ onUnmounted(() => {
   if (comboTimer) clearTimeout(comboTimer)
 })
 
-// Auto-play BGM on first user interaction
+// Auto-play BGM
 onMounted(() => {
   // 读取保存的凭据
   const savedUsername = localStorage.getItem('wenote_saved_username')
@@ -495,19 +512,35 @@ onMounted(() => {
   if (savedUsername) form.username = savedUsername
   if (savedPassword) form.password = savedPassword
 
-  window.addEventListener('click', () => {
-    AudioEngine.init()
-    if (isPlayingMusic.value && !AudioEngine.isPlaying) {
+  // 延迟播放 BGM，等加载页面完成音效结束后再启动
+  setTimeout(() => {
+    if (isPlayingMusic.value) {
+      AudioEngine.init()
       AudioEngine.startBGM()
     }
-  }, { once: true })
+  }, 6500)
+
+  // 降级：首次点击时播放（浏览器可能阻止自动播放）
+  setTimeout(() => {
+    window.addEventListener('click', () => {
+      AudioEngine.init()
+      if (isPlayingMusic.value && !AudioEngine.isPlaying) {
+        AudioEngine.startBGM()
+      }
+    }, { once: true })
+  }, 6500)
 })
 </script>
 
 <style scoped>
 /* Slogan Animation */
 .slogan-text {
-  -webkit-text-stroke: 2px white;
+  text-shadow:
+    -1px -1px 0 #fff,
+    1px -1px 0 #fff,
+    -1px 1px 0 #fff,
+    1px 1px 0 #fff,
+    2px 2px 4px rgba(0,0,0,0.1);
 }
 .slogan-word {
   display: inline-block;

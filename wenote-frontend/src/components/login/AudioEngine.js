@@ -46,20 +46,59 @@ export const AudioEngine = {
       osc.start(now)
       osc.stop(now + 0.4)
     } else if (type === 'win') {
-      const notes = [523.25, 659.25, 783.99, 1046.50]
-      notes.forEach((freq, i) => {
-        const o = ctx.createOscillator()
-        const g = ctx.createGain()
-        o.type = 'square'
-        o.frequency.value = freq
-        o.connect(g)
-        g.connect(ctx.destination)
-        const startTime = now + i * 0.1
-        g.gain.setValueAtTime(0.05, startTime)
-        g.gain.exponentialRampToValueAtTime(0.001, startTime + 0.4)
-        o.start(startTime)
-        o.stop(startTime + 0.4)
-      })
+      // 爆炸放屁声
+      // 低频主体 - 放屁嗡嗡声
+      osc.type = 'sawtooth'
+      osc.frequency.setValueAtTime(80, now)
+      osc.frequency.linearRampToValueAtTime(120, now + 0.15)
+      osc.frequency.linearRampToValueAtTime(60, now + 0.5)
+      osc.frequency.linearRampToValueAtTime(40, now + 0.7)
+      gain.gain.setValueAtTime(0.15, now)
+      gain.gain.linearRampToValueAtTime(0.2, now + 0.1)
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.7)
+      osc.start(now)
+      osc.stop(now + 0.7)
+
+      // 次低频泛音 - 增加厚度
+      const osc2 = ctx.createOscillator()
+      const g2 = ctx.createGain()
+      osc2.type = 'square'
+      osc2.frequency.setValueAtTime(50, now)
+      osc2.frequency.linearRampToValueAtTime(90, now + 0.1)
+      osc2.frequency.exponentialRampToValueAtTime(30, now + 0.6)
+      osc2.connect(g2)
+      g2.connect(ctx.destination)
+      g2.gain.setValueAtTime(0.1, now)
+      g2.gain.exponentialRampToValueAtTime(0.001, now + 0.6)
+      osc2.start(now)
+      osc2.stop(now + 0.6)
+
+      // 噪声爆破 - 模拟"噗"的爆炸感
+      const bufferSize = ctx.sampleRate * 0.3
+      const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate)
+      const data = noiseBuffer.getChannelData(0)
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ctx.sampleRate * 0.08))
+      }
+      const noise = ctx.createBufferSource()
+      noise.buffer = noiseBuffer
+      const ng = ctx.createGain()
+      noise.connect(ng)
+      ng.connect(ctx.destination)
+      ng.gain.setValueAtTime(0.12, now)
+      ng.gain.exponentialRampToValueAtTime(0.001, now + 0.3)
+      noise.start(now)
+      noise.stop(now + 0.3)
+
+      // 频率抖动 - 让放屁声更自然
+      const lfo = ctx.createOscillator()
+      const lfoGain = ctx.createGain()
+      lfo.frequency.value = 25
+      lfoGain.gain.value = 15
+      lfo.connect(lfoGain)
+      lfoGain.connect(osc.frequency)
+      lfo.start(now)
+      lfo.stop(now + 0.7)
     } else if (type === 'error') {
       osc.type = 'sawtooth'
       osc.frequency.setValueAtTime(200, now)

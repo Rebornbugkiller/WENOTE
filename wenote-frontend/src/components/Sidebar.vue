@@ -112,19 +112,29 @@ const handleSaveTag = (data) => {
 </script>
 
 <template>
+  <!-- Mobile Overlay -->
+  <Transition name="fade">
+    <div
+      v-if="sidebarOpen"
+      class="fixed inset-0 bg-black/50 z-30 md:hidden"
+      @click="emit('toggle-sidebar')"
+    />
+  </Transition>
+
   <!-- Sidebar -->
   <aside
-    class="fixed md:relative z-20 w-64 h-screen bg-white border-r-4 border-slate-900 shadow-2xl flex flex-col shrink-0 transition-transform duration-300"
-    :class="sidebarOpen ? 'translate-x-0' : '-translate-x-[240px]'"
+    class="fixed md:relative z-40 md:z-20 w-64 h-[100dvh] md:h-screen bg-white border-r-4 border-slate-900 shadow-2xl flex flex-col shrink-0 transition-transform duration-300"
+    :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full md:-translate-x-[240px]'"
   >
     <!-- Logo -->
-    <div class="p-6 border-b-4 border-slate-100 bg-slate-50">
-      <div
-        class="flex items-center gap-2 cursor-pointer hover:scale-105 transition-transform"
-        @click="emit('change-view', 'active'); playSound('click')"
-        @mouseenter="playSound('hover')"
-      >
-        <svg class="w-10 h-10" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <div class="p-4 md:p-6 border-b-4 border-slate-100 bg-slate-50">
+      <div class="flex items-center justify-between">
+        <div
+          class="flex items-center gap-2 cursor-pointer hover:scale-105 transition-transform"
+          @click="emit('change-view', 'active'); playSound('click')"
+          @mouseenter="playSound('hover')"
+        >
+          <svg class="w-8 h-8 md:w-10 md:h-10" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
           <rect x="15" y="10" width="70" height="80" rx="10" fill="#00b894" stroke="#2d3436" stroke-width="4"/>
           <path d="M15 25 L85 25" stroke="#2d3436" stroke-width="4"/>
           <rect x="25" y="25" width="50" height="40" rx="4" fill="#ffffff" stroke="#2d3436" stroke-width="4"/>
@@ -140,9 +150,17 @@ const handleSaveTag = (data) => {
             <rect x="0" y="-5" width="12" height="8" rx="2" fill="#fab1a0" stroke="#2d3436" stroke-width="3"/>
           </g>
         </svg>
-        <h1 class="text-2xl font-black tracking-tighter text-slate-800">
-          WE<span class="text-green-500">NOTE</span>
-        </h1>
+          <h1 class="text-xl md:text-2xl font-black tracking-tighter text-slate-800">
+            WE<span class="text-green-500">NOTE</span>
+          </h1>
+        </div>
+        <!-- Mobile Close Button -->
+        <button
+          class="md:hidden p-1.5 rounded-lg hover:bg-slate-200 transition-colors"
+          @click="emit('toggle-sidebar')"
+        >
+          <X class="w-5 h-5 text-slate-600" />
+        </button>
       </div>
     </div>
 
@@ -300,7 +318,7 @@ const handleSaveTag = (data) => {
     </nav>
 
     <!-- User Info -->
-    <div class="p-4 border-t-2 border-slate-100">
+    <div class="p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] border-t-2 border-slate-100">
       <div
         class="flex items-center gap-3 p-2 rounded-xl bg-slate-100 border-2 border-slate-200 hover:border-black transition-colors cursor-pointer group"
         @click="goToSettings"
@@ -353,3 +371,15 @@ const handleSaveTag = (data) => {
     @save="handleSaveTag"
   />
 </template>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+</style>

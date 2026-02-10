@@ -1,5 +1,5 @@
 <template>
-  <div class="absolute inset-0 overflow-hidden pointer-events-none">
+  <div class="absolute inset-0 overflow-hidden pointer-events-none hidden md:block">
     <!-- 云朵 -->
     <div
       v-for="cloud in clouds"

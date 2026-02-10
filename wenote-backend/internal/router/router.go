@@ -75,7 +75,6 @@ func SetupRouter() *gin.Engine {
 				notes.PUT("/:id/tags", noteHandler.UpdateTags)
 				notes.PUT("/:id/tags/apply-suggestions", noteHandler.ApplySuggestedTags)
 				notes.POST("/:id/ai/generate", noteHandler.GenerateSummaryAndTags)
-				notes.POST("/ai/assist", noteHandler.AIAssist) // AI写作助手
 				notes.POST("/batch/delete", noteHandler.BatchDelete)
 				notes.POST("/batch/restore", noteHandler.BatchRestore)
 				notes.POST("/batch/move", noteHandler.BatchMove)
