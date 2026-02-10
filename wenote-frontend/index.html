@@ -439,11 +439,33 @@
         animation: loading-exit 0.4s ease forwards;
         pointer-events: none;
       }
+      .lang-toggle {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        z-index: 3;
+        padding: 8px 16px;
+        background: transparent;
+        color: #4ade80;
+        font-family: inherit;
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: 2px;
+        border: 2px solid #4ade80;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .lang-toggle:hover {
+        background: #4ade80;
+        color: #000;
+      }
     </style>
   </head>
   <body>
     <!-- Start screen - 阻塞等待用户点击 -->
     <div id="start-screen">
+      <button class="lang-toggle" id="lang-toggle"></button>
       <div class="start-content">
         <div class="snake-character">
           <div class="snake-head">
@@ -454,12 +476,12 @@
             <div class="snake-tongue"></div>
           </div>
           <div class="speech-bubble">
-            <span class="bubble-text">WELCOME TO WENOTE!</span>
+            <span class="bubble-text" id="start-welcome"></span>
           </div>
         </div>
-        <button class="start-btn" id="start-btn">&#9654; PRESS START</button>
-        <div class="start-hint">CLICK TO BEGIN</div>
-        <div class="start-title">&copy; 2025 WeNote</div>
+        <button class="start-btn" id="start-btn"></button>
+        <div class="start-hint" id="start-hint"></div>
+        <div class="start-title" id="start-title"></div>
       </div>
     </div>
 
@@ -484,7 +506,7 @@
             <div class="snake-tongue"></div>
           </div>
           <div class="speech-bubble">
-            <span class="bubble-text" id="bubble-text">LOADING WENOTE...</span>
+            <span class="bubble-text" id="bubble-text"></span>
           </div>
         </div>
         <div class="progress-section">
@@ -496,15 +518,15 @@
             <span id="stage-text"></span><span class="stage-cursor"></span>
           </div>
         </div>
-        <div class="loading-footer">&copy; 2025 WeNote &mdash; Press Start</div>
+        <div class="loading-footer" id="loading-footer"></div>
       </div>
     </div>
 
     <!-- Bottom marquee -->
     <div class="loading-marquee" id="loading-marquee">
       <div class="marquee-track" id="marquee-track">
-        <span class="marquee-text">WELCOME TO WENOTE &#9733; YOUR SMART NOTE COMPANION &#9733; POWERED BY AI &#9733; LEVEL UP YOUR WRITING &#9733; LET'S CREATE SOMETHING AMAZING &#9733; INSERT COIN TO CONTINUE &#9733; ACHIEVEMENT UNLOCKED: FIRST LOGIN &#9733; PRESS START TO BEGIN &#9733; PLAYER 1 READY &#9733; LOADING CREATIVITY... 100% &#9733; SAVE POINT REACHED &#9733; NEW QUEST AVAILABLE &#9733; BONUS STAGE ACTIVATED &#9733; GG WP &#9733;&nbsp;&nbsp;&nbsp;</span>
-        <span class="marquee-text">WELCOME TO WENOTE &#9733; YOUR SMART NOTE COMPANION &#9733; POWERED BY AI &#9733; LEVEL UP YOUR WRITING &#9733; LET'S CREATE SOMETHING AMAZING &#9733; INSERT COIN TO CONTINUE &#9733; ACHIEVEMENT UNLOCKED: FIRST LOGIN &#9733; PRESS START TO BEGIN &#9733; PLAYER 1 READY &#9733; LOADING CREATIVITY... 100% &#9733; SAVE POINT REACHED &#9733; NEW QUEST AVAILABLE &#9733; BONUS STAGE ACTIVATED &#9733; GG WP &#9733;&nbsp;&nbsp;&nbsp;</span>
+        <span class="marquee-text" id="marquee-text-1"></span>
+        <span class="marquee-text" id="marquee-text-2"></span>
       </div>
     </div>
 
@@ -542,29 +564,98 @@
 
     <script>
       (function() {
-        var bubbleMessages = [
-          'LOADING WENOTE...',
-          'PRESS START TO WRITE',
-          'INSERTING COINS...',
-          'BOOTING SYSTEM...',
-          'WARMING UP AI...',
-          'FEEDING THE SNAKE...',
-          'READY PLAYER ONE',
-          'LEVEL UP YOUR NOTES'
-        ];
-        var stages = [
-          { at: 0, text: 'INITIALIZING SYSTEM' },
-          { at: 20, text: 'LOADING ASSETS' },
-          { at: 45, text: 'CONNECTING TO SERVER' },
-          { at: 70, text: 'PREPARING WORKSPACE' },
-          { at: 90, text: 'ALMOST READY' }
-        ];
+        /* ===== i18n ===== */
+        var lang = localStorage.getItem('locale') || 'zh-CN';
+        var i18nData = {
+          'en-US': {
+            welcome: 'WELCOME TO WENOTE!',
+            pressStart: '\u25B6 PRESS START',
+            clickToBegin: 'CLICK TO BEGIN',
+            startTitle: '\u00A9 2025 WeNote',
+            loadingFooter: '\u00A9 2025 WeNote \u2014 Press Start',
+            bubbleMessages: [
+              'LOADING WENOTE...', 'PRESS START TO WRITE', 'INSERTING COINS...',
+              'BOOTING SYSTEM...', 'WARMING UP AI...', 'FEEDING THE SNAKE...',
+              'READY PLAYER ONE', 'LEVEL UP YOUR NOTES'
+            ],
+            stages: [
+              { at: 0, text: 'INITIALIZING SYSTEM' },
+              { at: 20, text: 'LOADING ASSETS' },
+              { at: 45, text: 'CONNECTING TO SERVER' },
+              { at: 70, text: 'PREPARING WORKSPACE' },
+              { at: 90, text: 'ALMOST READY' }
+            ],
+            ready: 'READY!',
+            marquee: 'WELCOME TO WENOTE \u2733 YOUR SMART NOTE COMPANION \u2733 POWERED BY AI \u2733 LEVEL UP YOUR WRITING \u2733 LET\u2019S CREATE SOMETHING AMAZING \u2733 INSERT COIN TO CONTINUE \u2733 ACHIEVEMENT UNLOCKED: FIRST LOGIN \u2733 PRESS START TO BEGIN \u2733 PLAYER 1 READY \u2733 LOADING CREATIVITY... 100% \u2733 SAVE POINT REACHED \u2733 NEW QUEST AVAILABLE \u2733 BONUS STAGE ACTIVATED \u2733 GG WP \u2733\u00A0\u00A0\u00A0',
+            langBtn: '\u4E2D\u6587'
+          },
+          'zh-CN': {
+            welcome: '\u6B22\u8FCE\u6765\u5230 WENOTE\uFF01',
+            pressStart: '\u25B6 \u5F00\u59CB\u6E38\u620F',
+            clickToBegin: '\u70B9\u51FB\u4EFB\u610F\u4F4D\u7F6E\u5F00\u59CB',
+            startTitle: '\u00A9 2025 WeNote',
+            loadingFooter: '\u00A9 2025 WeNote \u2014 \u6309\u4E0B\u5F00\u59CB',
+            bubbleMessages: [
+              '\u6B63\u5728\u52A0\u8F7D WENOTE...', '\u51C6\u5907\u5F00\u59CB\u5199\u4F5C', '\u6B63\u5728\u6295\u5E01...',
+              '\u7CFB\u7EDF\u542F\u52A8\u4E2D...', '\u6B63\u5728\u9884\u70ED AI...', '\u6B63\u5728\u5582\u86C7...',
+              '\u73A9\u5BB6\u4E00\u5C31\u7EEA', '\u5347\u7EA7\u4F60\u7684\u7B14\u8BB0'
+            ],
+            stages: [
+              { at: 0, text: '\u6B63\u5728\u521D\u59CB\u5316\u7CFB\u7EDF' },
+              { at: 20, text: '\u6B63\u5728\u52A0\u8F7D\u8D44\u6E90' },
+              { at: 45, text: '\u6B63\u5728\u8FDE\u63A5\u670D\u52A1\u5668' },
+              { at: 70, text: '\u6B63\u5728\u51C6\u5907\u5DE5\u4F5C\u533A' },
+              { at: 90, text: '\u5373\u5C06\u5C31\u7EEA' }
+            ],
+            ready: '\u5C31\u7EEA\uFF01',
+            marquee: '\u6B22\u8FCE\u6765\u5230 WENOTE \u2733 \u4F60\u7684\u667A\u80FD\u7B14\u8BB0\u4F19\u4F34 \u2733 AI \u9A71\u52A8 \u2733 \u63D0\u5347\u4F60\u7684\u5199\u4F5C \u2733 \u4E00\u8D77\u521B\u9020\u7CBE\u5F69 \u2733 \u6295\u5E01\u7EE7\u7EED \u2733 \u6210\u5C31\u89E3\u9501\uFF1A\u9996\u6B21\u767B\u5F55 \u2733 \u6309\u4E0B\u5F00\u59CB \u2733 \u73A9\u5BB6\u4E00\u5C31\u7EEA \u2733 \u52A0\u8F7D\u521B\u610F\u4E2D... 100% \u2733 \u5B58\u6863\u70B9\u5DF2\u5230\u8FBE \u2733 \u65B0\u4EFB\u52A1\u53EF\u7528 \u2733 \u5956\u52B1\u5173\u5361\u5DF2\u6FC0\u6D3B \u2733 GG WP \u2733\u00A0\u00A0\u00A0',
+            langBtn: 'EN'
+          }
+        };
+        var texts = i18nData[lang] || i18nData['zh-CN'];
+
+        /* ===== Apply texts to DOM ===== */
+        var startWelcomeEl = document.getElementById('start-welcome');
+        var startBtnEl = document.getElementById('start-btn');
+        var startHintEl = document.getElementById('start-hint');
+        var startTitleEl = document.getElementById('start-title');
+        var loadingFooterEl = document.getElementById('loading-footer');
+        var langToggleEl = document.getElementById('lang-toggle');
+        var marqueeText1 = document.getElementById('marquee-text-1');
+        var marqueeText2 = document.getElementById('marquee-text-2');
+
+        function applyTexts() {
+          if (startWelcomeEl) startWelcomeEl.textContent = texts.welcome;
+          if (startBtnEl) startBtnEl.textContent = texts.pressStart;
+          if (startHintEl) startHintEl.textContent = texts.clickToBegin;
+          if (startTitleEl) startTitleEl.textContent = texts.startTitle;
+          if (loadingFooterEl) loadingFooterEl.textContent = texts.loadingFooter;
+          if (langToggleEl) langToggleEl.textContent = texts.langBtn;
+          if (marqueeText1) marqueeText1.textContent = texts.marquee;
+          if (marqueeText2) marqueeText2.textContent = texts.marquee;
+          if (bubbleEl) bubbleEl.textContent = texts.bubbleMessages[0];
+        }
+
+        /* ===== Language toggle ===== */
+        if (langToggleEl) {
+          langToggleEl.addEventListener('click', function(e) {
+            e.stopPropagation();
+            lang = (lang === 'zh-CN') ? 'en-US' : 'zh-CN';
+            localStorage.setItem('locale', lang);
+            texts = i18nData[lang] || i18nData['zh-CN'];
+            applyTexts();
+          });
+        }
+
         var progressBar = document.getElementById('progress-bar');
         var progressBarOuter = document.getElementById('progress-bar-outer');
         var percentEl = document.getElementById('progress-percent');
         var stageEl = document.getElementById('stage-text');
         var bubbleEl = document.getElementById('bubble-text');
         var snakeHead = document.getElementById('snake-head');
+
+        applyTexts();
+
         var currentPercent = 0;
         var targetPercent = 0;
         var dismissed = false;
@@ -678,8 +769,8 @@
         function startBubbleRotation() {
           bubbleTimer = setInterval(function() {
             if (dismissed) return;
-            bubbleIdx = (bubbleIdx + 1) % bubbleMessages.length;
-            if (bubbleEl) bubbleEl.textContent = bubbleMessages[bubbleIdx];
+            bubbleIdx = (bubbleIdx + 1) % texts.bubbleMessages.length;
+            if (bubbleEl) bubbleEl.textContent = texts.bubbleMessages[bubbleIdx];
           }, 1800);
         }
 
@@ -731,11 +822,11 @@
 
           updateSnakeExpression(currentPercent);
 
-          for (var s = stages.length - 1; s >= 0; s--) {
-            if (currentPercent >= stages[s].at) {
+          for (var s = texts.stages.length - 1; s >= 0; s--) {
+            if (currentPercent >= texts.stages[s].at) {
               if (s !== currentStageIdx) {
                 currentStageIdx = s;
-                typeStage(stages[s].text);
+                typeStage(texts.stages[s].text);
                 if (s > 0) {
                   playMilestone();
                   pulseBar();
@@ -758,7 +849,7 @@
 
           activateParticles();
           startBubbleRotation();
-          if (bubbleEl) bubbleEl.textContent = bubbleMessages[0];
+          if (bubbleEl) bubbleEl.textContent = texts.bubbleMessages[0];
 
           currentStageIdx = -1;
           requestAnimationFrame(tick);
@@ -788,7 +879,7 @@
           currentPercent = 100;
           if (progressBar) progressBar.style.width = '100%';
           if (percentEl) percentEl.textContent = '100%';
-          if (stageEl) stageEl.textContent = 'READY!';
+          if (stageEl) stageEl.textContent = texts.ready;
           updateSnakeExpression(100);
           playComplete();
 
